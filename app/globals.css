@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    scrollbar-color: #e4e4e7 transparent;
+  }
+
+  *:hover {
+    scrollbar-color: #d4d4d8 transparent;
+  }
+
+  *:not(.light *) {
+    scrollbar-color: #3f3f46 #18181b;
+  }
+
+  *:not(.light *):hover {
+    scrollbar-color: #52525b #18181b;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  * {
+    scrollbar-color: #3f3f46 #18181b;
+  }
+
+  *:hover {
+    scrollbar-color: #52525b #18181b;
+  }
+}
