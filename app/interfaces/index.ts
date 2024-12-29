@@ -1,49 +1,49 @@
-export interface IToken {
+export interface IBase {
+  createDate: string;
+  deleteDate?: string;
   id: number;
-  username: string;
-  token: string;
-  expDays: number;
+  updateDate?: string;
+  version?: number;
+}
+
+export interface ICompleted<T> {
+  instance: Response;
+  response: T;
 }
 
 export interface IError {
+  code?: number | string;
+  error?: unknown;
   message: string;
   statusCode?: number;
-  error?: unknown;
-  code?: number | string;
 }
 
-export interface IPage<T> {
-  data: T;
-  size: number;
-  page: number;
-  pages: number;
-  next: boolean;
-  previous: boolean;
+export interface IFailed<T> {
+  error: T;
+  ok: false;
 }
 
 export interface IHealth {
   status: 'UP';
 }
 
-export interface IFailed<T> {
-  ok: false;
-  error: T;
+export interface IPage<T> {
+  data: T;
+  next: boolean;
+  page: number;
+  pages: number;
+  previous: boolean;
+  size: number;
 }
 
 export interface ISuccessful<T> {
-  ok: true;
   data: T;
+  ok: true;
 }
 
-export interface ICompleted<T> {
-  response: T;
-  instance: Response;
-}
-
-export interface IBase {
+export interface IToken {
+  expDays: number;
   id: number;
-  createDate: string;
-  updateDate?: string;
-  deleteDate?: string;
-  version?: number;
+  token: string;
+  username: string;
 }

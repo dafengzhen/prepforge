@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
-import { Raleway } from 'next/font/google';
-import { Providers } from '@/app/providers';
+
+import '@/app/styles/globals.scss';
+import Providers from '@/app/providers';
 import clsx from 'clsx';
+import { Raleway } from 'next/font/google';
 import { type ReactNode } from 'react';
-import './globals.css';
 
 const raleway = Raleway({
   style: ['normal', 'italic'],
@@ -12,31 +13,31 @@ const raleway = Raleway({
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: 'prepforge',
-    template: `%s | prepforge`,
-  },
   description: "It's a bank of interview questions",
   icons: [
     {
       rel: 'icon',
-      url: '/favicon/favicon.ico',
-      type: 'image/x-icon',
       sizes: 'any',
+      type: 'image/x-icon',
+      url: '/favicon/favicon.ico',
     },
     {
       rel: 'icon',
-      url: '/favicon/favicon-32x32.png',
-      type: 'image/png',
       sizes: '32x32',
+      type: 'image/png',
+      url: '/favicon/favicon-32x32.png',
     },
     {
       rel: 'apple-touch-icon',
-      url: '/favicon/apple-touch-icon.png',
-      type: 'image/png',
       sizes: '180x180',
+      type: 'image/png',
+      url: '/favicon/apple-touch-icon.png',
     },
   ],
+  title: {
+    default: 'prepforge',
+    template: `%s | prepforge`,
+  },
 };
 
 export default function RootLayout({
@@ -45,14 +46,8 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="zh" suppressHydrationWarning>
-      <body
-        className={clsx(
-          'text-foreground bg-background overflow-hidden min-w-[375px] min-h-[667px]',
-          raleway.className,
-          raleway.variable,
-        )}
-      >
+    <html data-bs-theme="light" lang="en">
+      <body className={clsx(raleway.className, raleway.variable, 'bg-body-tertiary')}>
         <Providers>{children}</Providers>
       </body>
     </html>

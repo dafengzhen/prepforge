@@ -6,20 +6,8 @@ export const DELETE = 'DELETE';
 
 export const KEY_PREFIX = '_prepforge_';
 
-export const TK = '_prepforge_tk';
+export const TK = KEY_PREFIX + 'tk';
 
 export const AUTHORIZATION = 'Authorization';
 
 export const BEARER = 'Bearer';
-
-export const JSON_HEADER = {
-  'Content-Type': 'application/json',
-};
-
-export const AUTHENTICATION_HEADER = (tk: string | undefined | null) => {
-  return tk
-    ? {
-        [AUTHORIZATION]: `${BEARER} ${tk}`,
-      }
-    : ({} as Record<string, string>);
-};

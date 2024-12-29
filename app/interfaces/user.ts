@@ -1,15 +1,20 @@
-import type { IBase } from '@/app/interfaces/index';
+import type { IBase } from '@/app/interfaces';
+import type { IQuestion } from '@/app/interfaces/question';
 import type { ITab } from '@/app/interfaces/tab';
 import type { ITag } from '@/app/interfaces/tag';
-import type { IQuestion } from '@/app/interfaces/question';
+
+export interface ILoginDto {
+  password: string;
+  username: string;
+}
 
 export interface IUser extends IBase {
-  username: string;
-  password?: string;
-  tabs?: ITab[];
-  tags?: ITag[];
-  questions?: IQuestion[];
   customizationSettings: {
     type: 'user';
   };
+  password?: string;
+  questions?: IQuestion[];
+  tabs?: ITab[];
+  tags?: ITag[];
+  username: string;
 }
