@@ -13,7 +13,8 @@ const raleway = Raleway({
 });
 
 export const metadata: Metadata = {
-  description: "It's a bank of interview questions",
+  description:
+    "Prepforge is a tool designed to help you prepare for interviews efficiently. It allows users to customize, manage, and optimize their personal interview question banks. Whether you're preparing for technical interviews or non-technical job applications, Prepforge provides the support you need.",
   icons: [
     {
       rel: 'icon',
