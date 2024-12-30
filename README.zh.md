@@ -8,7 +8,7 @@ Prepforge 是一款帮助你高效准备面试的工具。它允许用户自定�
 
 ## 示例项目
 
-想要体验完整功能？请查看演示项目：[Prepforge 演示](https://prepforge-ten.vercel.app)
+想要体验完整功能？请查看演示项目：[Prepforge 演示](https://prep-forge.vercel.app)
 
 ## 许可证
 

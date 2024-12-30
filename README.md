@@ -8,7 +8,7 @@ Prepforge is a tool designed to help you prepare for interviews efficiently. It 
 
 ## Example Project
 
-Want to experience the full functionality? Check out our demo project: [Prepforge Demo](https://prepforge-ten.vercel.app)
+Want to experience the full functionality? Check out our demo project: [Prepforge Demo](https://prep-forge.vercel.app)
 
 ## License
 
