@@ -201,19 +201,19 @@ export default function Home() {
                 }
                 header={{
                   icon: (
-                    <Link href="/public">
+                    <Link href={getPublicPath() + '/'}>
                       <Image
                         alt="prepforge"
                         className="rounded-circle"
                         height={36}
                         priority
-                        src="/favicon/android-chrome-512x512.png"
+                        src={getPublicPath() + '/images/logo.png'}
                         width={36}
                       />
                     </Link>
                   ),
                   name: (
-                    <Link className="text-decoration-none link-body-emphasis fs-5" href="/public">
+                    <Link className="text-decoration-none link-body-emphasis fs-5" href={getPublicPath() + '/'}>
                       PrepForge
                     </Link>
                   ),
