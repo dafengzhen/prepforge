@@ -70,7 +70,7 @@ export default function Login() {
               className="rounded-circle img-thumbnail"
               height={70}
               priority
-              src="/favicon/android-chrome-512x512.png"
+              src={getPublicPath() + '/images/logo.png'}
               width={70}
             />
           </Link>
