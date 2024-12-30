@@ -1,16 +1,19 @@
 import { AUTHORIZATION, BEARER } from '@/app/constants';
 import sanitizeHtml from 'sanitize-html';
 
-export const handleApiResponse = async (response: Response) => {
+export const handleApiResponse = async (response: Response, whitelistPath?: string[]) => {
   if (!response.ok) {
     const error = await response.json();
-    if (error.statusCode === 401) {
+    if (
+      error.statusCode === 401 &&
+      (!Array.isArray(whitelistPath) || (Array.isArray(whitelistPath) && whitelistPath.length === 0))
+    ) {
       if (typeof location !== undefined) {
         location.assign('/login');
       }
     }
 
-    return error;
+    return Promise.reject(error);
   }
 
   const contentType = response.headers.get('content-type');

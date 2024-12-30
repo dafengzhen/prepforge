@@ -38,6 +38,12 @@ const loadingPlaceholderOption: SidebarOption = {
   name: 'Loading...',
 };
 
+const addTabOption: SidebarOption = {
+  icon: <i className="bi bi-plus-lg"></i>,
+  id: 'addTab',
+  name: 'Add Tab',
+};
+
 export default function Home() {
   const [sidebarOptions, setSidebarOptions] = useState<SidebarOption[]>([loadingPlaceholderOption]);
   const [activeManagementType, setActiveManagementType] = useState<'manageQuestion' | 'manageTab' | 'manageTag' | null>(
@@ -82,16 +88,31 @@ export default function Home() {
   }, [tagsByTabIdQuery.data]);
   useEffect(() => {
     if (tabsQuery.data) {
-      setSidebarOptions(
-        tabsQuery.data.map(
-          (tab): SidebarOption => ({
-            icon: <i className="bi bi-folder"></i>,
-            id: tab.id,
-            name: tab.name,
-            onClick: () => setSelectedTab((prevTab) => (prevTab?.id === tab.id ? null : tab)),
-          }),
-        ),
-      );
+      if (tabsQuery.data.length === 0) {
+        setSidebarOptions([
+          {
+            ...addTabOption,
+            onClick: (e) => {
+              e.preventDefault();
+              setActiveManagementType((prevState) => (prevState === 'manageQuestion' ? null : 'manageQuestion'));
+            },
+          },
+        ]);
+      } else {
+        setSidebarOptions(
+          tabsQuery.data.map(
+            (tab): SidebarOption => ({
+              icon: <i className="bi bi-folder"></i>,
+              id: tab.id,
+              name: tab.name,
+              onClick: (e) => {
+                e.preventDefault();
+                setSelectedTab((prevTab) => (prevTab?.id === tab.id ? null : tab));
+              },
+            }),
+          ),
+        );
+      }
     }
   }, [tabsQuery.data]);
   useEffect(() => {

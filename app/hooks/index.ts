@@ -19,7 +19,14 @@ export const useStoredTicket = () => {
   const [token, setToken] = useState<null | string | undefined>(null);
 
   useEffect(() => {
-    setToken(localStorage.getItem(TK) || null);
+    const value = localStorage.getItem(TK);
+    if (value) {
+      if (value === 'null' || value === 'undefined' || value === 'true' || value === 'false') {
+        localStorage.removeItem(TK);
+      } else {
+        setToken(localStorage.getItem(TK));
+      }
+    }
   }, []);
 
   return token;
