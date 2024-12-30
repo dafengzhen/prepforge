@@ -95,7 +95,12 @@ export default function Home() {
     }
   }, [tabsQuery.data]);
   useEffect(() => {
-    if (userProfileQuery.isSuccess && !userProfileQuery.data) {
+    if (
+      userProfileQuery.isSuccess &&
+      (!userProfileQuery.data ||
+        typeof userProfileQuery.data !== 'object' ||
+        Object.keys(userProfileQuery.data).length === 0)
+    ) {
       location.assign('/login');
     }
   }, [userProfileQuery.data, userProfileQuery.isSuccess]);

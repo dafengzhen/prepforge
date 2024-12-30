@@ -16,12 +16,10 @@ export const useResolvedUrl = (path: null | string | undefined) => {
 };
 
 export const useStoredTicket = () => {
-  const [token, setToken] = useState<null | string | undefined>();
+  const [token, setToken] = useState<null | string | undefined>(null);
 
   useEffect(() => {
-    if (typeof localStorage !== undefined) {
-      setToken(localStorage.getItem(TK));
-    }
+    setToken(localStorage.getItem(TK) || null);
   }, []);
 
   return token;

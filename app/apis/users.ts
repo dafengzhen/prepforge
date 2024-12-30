@@ -39,7 +39,7 @@ export const useFetchUserProfile = () => {
   const ticket = useStoredTicket();
 
   return useQuery<IUser, IError>({
-    enabled: isDefinedAndNotEmpty(url, ticket),
+    enabled: isDefinedAndNotEmpty(url),
     queryFn: async () => {
       if (!url) {
         throw createUrlResolutionError();
