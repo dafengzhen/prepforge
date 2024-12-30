@@ -28,7 +28,7 @@ export const useLogin = () => {
         method: POST,
       });
 
-      return handleApiResponse(response, ['/users/login']);
+      return handleApiResponse(response, ['/login']);
     },
     mutationKey: ['login'],
   });

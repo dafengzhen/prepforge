@@ -11,6 +11,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { type ChangeEvent, type FormEvent, useState } from 'react';
 
+const publicPath = getPublicPath();
+
 const currentDate = new Date();
 
 export default function Login() {
@@ -47,7 +49,7 @@ export default function Login() {
       localStorage.setItem(TK, response.token);
       toast.showToast('Login successful', 'primary');
 
-      setTimeout(() => location.assign(getPublicPath() + '/'), 1250);
+      setTimeout(() => location.assign(publicPath + '/'), 1250);
     } catch (error) {
       toast.showToast((error as IError).message, 'danger');
     }
@@ -70,7 +72,7 @@ export default function Login() {
               className="rounded-circle img-thumbnail"
               height={70}
               priority
-              src={getPublicPath() + '/images/logo.png'}
+              src={publicPath + '/images/logo.png'}
               width={70}
             />
           </Link>

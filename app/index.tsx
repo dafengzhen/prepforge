@@ -33,6 +33,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
+const publicPath = getPublicPath();
+
 const loadingPlaceholderOption: SidebarOption = {
   icon: <i className="bi bi-folder"></i>,
   id: 'loading',
@@ -123,7 +125,7 @@ export default function Home() {
         typeof userProfileQuery.data !== 'object' ||
         Object.keys(userProfileQuery.data).length === 0)
     ) {
-      location.assign(getPublicPath() + '/login');
+      location.assign(publicPath + '/login');
     }
   }, [userProfileQuery.data, userProfileQuery.isSuccess]);
   useEffect(() => {
@@ -156,7 +158,7 @@ export default function Home() {
   }
   function confirmLogout() {
     localStorage.removeItem(TK);
-    location.assign(getPublicPath() + '/login');
+    location.assign(publicPath + '/login');
   }
 
   return (
@@ -201,19 +203,19 @@ export default function Home() {
                 }
                 header={{
                   icon: (
-                    <Link href={getPublicPath() + '/'}>
+                    <Link href={publicPath + '/'}>
                       <Image
                         alt="prepforge"
                         className="rounded-circle"
                         height={36}
                         priority
-                        src={getPublicPath() + '/images/logo.png'}
+                        src={publicPath + '/images/logo.png'}
                         width={36}
                       />
                     </Link>
                   ),
                   name: (
-                    <Link className="text-decoration-none link-body-emphasis fs-5" href={getPublicPath() + '/'}>
+                    <Link className="text-decoration-none link-body-emphasis fs-5" href={publicPath + '/'}>
                       PrepForge
                     </Link>
                   ),
