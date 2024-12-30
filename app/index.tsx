@@ -203,7 +203,7 @@ export default function Home() {
                 }
                 header={{
                   icon: (
-                    <Link href={publicPath + '/'}>
+                    <Link href="./">
                       <Image
                         alt="prepforge"
                         className="rounded-circle"
@@ -215,7 +215,7 @@ export default function Home() {
                     </Link>
                   ),
                   name: (
-                    <Link className="text-decoration-none link-body-emphasis fs-5" href={publicPath + '/'}>
+                    <Link className="text-decoration-none link-body-emphasis fs-5" href="./">
                       PrepForge
                     </Link>
                   ),

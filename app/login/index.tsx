@@ -66,7 +66,7 @@ export default function Login() {
     <div className="container d-grid vh-100 p-3" style={{ placeItems: 'center' }}>
       <Card cardBody className="shadow border-0" style={{ height: 580, width: 400 }}>
         <div className="text-center mt-4 mb-5">
-          <Link href="/">
+          <Link href="./">
             <Image
               alt="prepforge"
               className="rounded-circle img-thumbnail"
