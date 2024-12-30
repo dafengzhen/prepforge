@@ -1,7 +1,7 @@
 import type { IError } from '@/app/interfaces';
 import type { ICustomQuestionDto, IQuestion } from '@/app/interfaces/question';
 
-import { POST } from '@/app/constants';
+import { POST, PUT } from '@/app/constants';
 import { useResolvedUrl, useStoredTicket } from '@/app/hooks';
 import {
   buildAuthHeader,
@@ -52,5 +52,27 @@ export const useCreateCustomQuestion = () => {
       return handleApiResponse(response);
     },
     mutationKey: ['createCustomQuestion'],
+  });
+};
+
+export const useUpdateCustomQuestion = (questionId?: number) => {
+  const url = useResolvedUrl(questionId ? `/questions/${questionId}` : null);
+  const ticket = useStoredTicket();
+
+  return useMutation<void, IError, ICustomQuestionDto>({
+    mutationFn: async (options: ICustomQuestionDto) => {
+      if (!url) {
+        throw createUrlResolutionError();
+      }
+
+      const response = await fetch(url, {
+        body: JSON.stringify(options),
+        headers: buildHeaders(ticket),
+        method: PUT,
+      });
+
+      return handleApiResponse(response);
+    },
+    mutationKey: ['updateCustomQuestion'],
   });
 };

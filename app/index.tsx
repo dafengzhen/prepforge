@@ -45,6 +45,7 @@ export default function Home() {
   );
   const [selectedTab, setSelectedTab] = useState<ITab | null>(null);
   const [selectedTag, setSelectedTag] = useState<ITag | null>(null);
+  const [selectedQuestion, setSelectedQuestion] = useState<IQuestion | null>(null);
   const [tagList, setTagList] = useState<ITag[]>([]);
   const [questionList, setQuestionList] = useState<IQuestion[]>([]);
   const [isLogoutModalVisible, setLogoutModalVisibility] = useState(false);
@@ -243,17 +244,32 @@ export default function Home() {
             <div className="flex-grow-1 overflow-y-auto">
               {activeManagementType ? (
                 <div className="container py-3">
-                  {activeManagementType === 'manageTab' && <ManageTab onBack={() => setActiveManagementType(null)} />}
-                  {activeManagementType === 'manageTag' && (
-                    <ManageTag
+                  {activeManagementType === 'manageTab' && (
+                    <ManageTab
                       onBack={() => setActiveManagementType(null)}
                       tabId={selectedTab?.id ?? selectedTag?.tab?.id}
                       tabName={selectedTab?.name ?? selectedTag?.tab?.name}
                     />
                   )}
+                  {activeManagementType === 'manageTag' && (
+                    <ManageTag
+                      onBack={() => setActiveManagementType(null)}
+                      tabId={selectedTab?.id ?? selectedTag?.tab?.id}
+                      tabName={selectedTab?.name ?? selectedTag?.tab?.name}
+                      tagId={selectedTag?.id}
+                      tagName={selectedTag?.name}
+                    />
+                  )}
                   {activeManagementType === 'manageQuestion' && (
                     <ManageQuestion
-                      onBack={() => setActiveManagementType(null)}
+                      answer={selectedQuestion?.answer}
+                      manageType={selectedQuestion ? 'edit' : 'add'}
+                      onBack={() => {
+                        setSelectedQuestion(null);
+                        setActiveManagementType(null);
+                      }}
+                      question={selectedQuestion?.question}
+                      questionId={selectedQuestion?.id}
                       tabId={selectedTab?.id ?? selectedTag?.tab?.id}
                       tabName={selectedTab?.name ?? selectedTag?.tab?.name}
                       tagId={selectedTag?.id}
@@ -316,7 +332,7 @@ export default function Home() {
                           return (
                             <div className={clsx(question.expand ? 'col-12' : 'col')} key={question.id}>
                               <Card className="h-100 rounded-4 border">
-                                <CardBody className="overflow-hidden" style={{ maxHeight: 512 }}>
+                                <CardBody className="overflow-hidden position-relative" style={{ maxHeight: 512 }}>
                                   <CardTitle className="leading-normal mb-3">
                                     <Link
                                       className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
@@ -333,6 +349,19 @@ export default function Home() {
                                       dangerouslySetInnerHTML={{ __html: question.answer }}
                                     />
                                   )}
+
+                                  <div
+                                    className="position-absolute bottom-0 start-50 translate-middle-x w-100 px-3 text-end pt-1 text-secondary"
+                                    style={{ background: 'var(--bs-card-cap-bg)' }}
+                                  >
+                                    <i
+                                      className="bi bi-pencil-square cursor-pointer"
+                                      onClick={() => {
+                                        setSelectedQuestion(question);
+                                        setActiveManagementType('manageQuestion');
+                                      }}
+                                    ></i>
+                                  </div>
                                 </CardBody>
                                 <CardFooter className="border-top d-flex gap-2 align-items-center justify-content-between">
                                   <CardText className="card-text small text-secondary" dropOldClass>

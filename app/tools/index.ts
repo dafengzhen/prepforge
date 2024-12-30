@@ -53,7 +53,6 @@ export const createUrlResolutionError = (message: string = 'The requested resour
 export const sanitizeInput = (value: string) => {
   return sanitizeHtml(value, {
     allowedAttributes: false,
-    allowedTags: false,
     nonBooleanAttributes: [],
   });
 };

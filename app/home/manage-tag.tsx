@@ -1,17 +1,33 @@
 import type { IError } from '@/app/interfaces';
-import type { MouseEvent } from 'react';
 
-import { useCreateCustomTag } from '@/app/apis/tags';
+import { useCreateCustomTag, useUpdateCustomTag } from '@/app/apis/tags';
 import useToast from '@/app/hooks/toast';
 import { Button, ButtonGroup, Card, CardBody, CardHeader, Input, Label, Text } from 'bootstrap-react-logic';
-import Link from 'next/link';
-import { useState } from 'react';
+import clsx from 'clsx';
+import { useEffect, useState } from 'react';
 
-const AddTag = ({ tabId, tabName }: { tabId?: number; tabName?: string }) => {
-  const [name, setName] = useState('');
+const SaveTag = ({
+  isUpdate,
+  tabId,
+  tabName,
+  tagId,
+  tagName,
+}: {
+  isUpdate?: boolean;
+  tabId?: number;
+  tabName?: string;
+  tagId?: number;
+  tagName?: string;
+}) => {
+  const [name, setName] = useState(isUpdate ? (tagName ?? '') : '');
   const toastRef = useToast();
   const createCustomTag = useCreateCustomTag();
-  const isLoading = createCustomTag.isPending;
+  const updateCustomTag = useUpdateCustomTag(tagId);
+  const isLoading = isUpdate ? updateCustomTag.isPending : createCustomTag.isPending;
+
+  useEffect(() => {
+    setName(isUpdate ? (tagName ?? '') : '');
+  }, [isUpdate, tagName]);
 
   async function onClickSave() {
     const toast = toastRef.current;
@@ -25,8 +41,14 @@ const AddTag = ({ tabId, tabName }: { tabId?: number; tabName?: string }) => {
     }
 
     try {
-      await createCustomTag.mutateAsync({ name: name.trim(), tabId });
-      setName('');
+      const newName = name.trim();
+      if (isUpdate) {
+        await updateCustomTag.mutateAsync({ name: newName });
+      } else {
+        await createCustomTag.mutateAsync({ name: newName, tabId });
+        setName('');
+      }
+
       toast.showToast('Saved successfully', 'success');
     } catch (error) {
       toast.showToast((error as IError).message, 'danger');
@@ -74,39 +96,64 @@ export default function ManageTag({
   onBack,
   tabId,
   tabName,
+  tagId,
+  tagName,
 }: {
   onBack?: () => void;
   tabId?: number;
   tabName?: string;
+  tagId?: number;
+  tagName?: string;
 }) {
-  const [type] = useState<'add' | null>('add');
+  const [type, setType] = useState<'add' | 'edit' | null>('add');
 
-  function handleBack(e: MouseEvent<HTMLAnchorElement>) {
-    e.preventDefault();
+  function handleBack() {
     onBack?.();
+  }
+
+  function onClickType(type: 'add' | 'edit') {
+    setType(type);
   }
 
   return (
     <Card className="border">
-      <CardHeader className="">
-        <ButtonGroup className="justify-content-between align-items-center gap-2" toolbar>
-          <Link
-            className="link-secondary link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
-            href=""
+      <CardHeader>
+        <ButtonGroup>
+          <Button
             onClick={handleBack}
+            outline="secondary"
+            size="sm"
+            startContent={<i className="bi bi-arrow-left me-1"></i>}
           >
-            <i className="bi bi-arrow-left me-1"></i>
             Back
-          </Link>
+          </Button>
 
-          {!type && (
-            <Button startContent={<i className="bi bi-plus-lg me-1"></i>} variant="secondary">
-              Add
+          <Button
+            className={clsx(type === 'add' && 'active')}
+            onClick={() => onClickType('add')}
+            outline="secondary"
+            size="sm"
+            startContent={<i className="bi bi-plus-lg me-1"></i>}
+          >
+            Add
+          </Button>
+
+          {!!tagId && !!tagName && (
+            <Button
+              className={clsx(type === 'edit' && 'active')}
+              onClick={() => onClickType('edit')}
+              outline="secondary"
+              size="sm"
+              startContent={<i className="bi bi-pencil-square me-1"></i>}
+            >
+              Edit
             </Button>
           )}
         </ButtonGroup>
       </CardHeader>
-      <CardBody>{type === 'add' && <AddTag tabId={tabId} tabName={tabName} />}</CardBody>
+      <CardBody>
+        <SaveTag isUpdate={type === 'edit'} tabId={tabId} tabName={tabName} tagId={tagId} tagName={tagName} />
+      </CardBody>
     </Card>
   );
 }

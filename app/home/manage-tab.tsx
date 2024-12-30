@@ -1,17 +1,21 @@
 import type { IError } from '@/app/interfaces';
-import type { MouseEvent } from 'react';
 
-import { useCreateCustomTab } from '@/app/apis/tabs';
+import { useCreateCustomTab, useUpdateCustomTab } from '@/app/apis/tabs';
 import useToast from '@/app/hooks/toast';
 import { Button, ButtonGroup, Card, CardBody, CardHeader, Input, Label, Text } from 'bootstrap-react-logic';
-import Link from 'next/link';
-import { useState } from 'react';
+import clsx from 'clsx';
+import { useEffect, useState } from 'react';
 
-const AddTab = () => {
-  const [name, setName] = useState('');
+const SaveTab = ({ isUpdate, tabId, tabName }: { isUpdate?: boolean; tabId?: number; tabName?: string }) => {
+  const [name, setName] = useState(isUpdate ? (tabName ?? '') : '');
   const toastRef = useToast();
   const createCustomTab = useCreateCustomTab();
-  const isLoading = createCustomTab.isPending;
+  const updateCustomTab = useUpdateCustomTab(tabId);
+  const isLoading = isUpdate ? updateCustomTab.isPending : createCustomTab.isPending;
+
+  useEffect(() => {
+    setName(isUpdate ? (tabName ?? '') : '');
+  }, [isUpdate, tabName]);
 
   async function onClickSave() {
     const toast = toastRef.current;
@@ -25,8 +29,14 @@ const AddTab = () => {
     }
 
     try {
-      await createCustomTab.mutateAsync({ name: name.trim() });
-      setName('');
+      const newName = name.trim();
+      if (isUpdate) {
+        await updateCustomTab.mutateAsync({ name: newName });
+      } else {
+        await createCustomTab.mutateAsync({ name: newName });
+        setName('');
+      }
+
       toast.showToast('Saved successfully', 'success');
     } catch (error) {
       toast.showToast((error as IError).message, 'danger');
@@ -54,35 +64,66 @@ const AddTab = () => {
   );
 };
 
-export default function ManageTab({ onBack }: { onBack?: () => void }) {
-  const [type] = useState<'add' | null>('add');
+export default function ManageTab({
+  onBack,
+  tabId,
+  tabName,
+}: {
+  onBack?: () => void;
+  tabId?: number;
+  tabName?: string;
+}) {
+  const [type, setType] = useState<'add' | 'edit' | null>('add');
 
-  function handleBack(e: MouseEvent<HTMLAnchorElement>) {
-    e.preventDefault();
+  function handleBack() {
     onBack?.();
+  }
+
+  function onClickType(type: 'add' | 'edit') {
+    setType(type);
   }
 
   return (
     <Card className="border">
-      <CardHeader className="">
-        <ButtonGroup className="justify-content-between align-items-center gap-2" toolbar>
-          <Link
-            className="link-secondary link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
-            href=""
-            onClick={handleBack}
-          >
-            <i className="bi bi-arrow-left me-1"></i>
-            Back
-          </Link>
+      <CardHeader>
+        <div className="d-flex justify-content-between align-items-center gap-2">
+          <ButtonGroup>
+            <Button
+              onClick={handleBack}
+              outline="secondary"
+              size="sm"
+              startContent={<i className="bi bi-arrow-left me-1"></i>}
+            >
+              Back
+            </Button>
 
-          {!type && (
-            <Button startContent={<i className="bi bi-plus-lg me-1"></i>} variant="secondary">
+            <Button
+              className={clsx(type === 'add' && 'active')}
+              onClick={() => onClickType('add')}
+              outline="secondary"
+              size="sm"
+              startContent={<i className="bi bi-plus-lg me-1"></i>}
+            >
               Add
             </Button>
-          )}
-        </ButtonGroup>
+
+            {!!tabId && !!tabName && (
+              <Button
+                className={clsx(type === 'edit' && 'active')}
+                onClick={() => onClickType('edit')}
+                outline="secondary"
+                size="sm"
+                startContent={<i className="bi bi-pencil-square me-1"></i>}
+              >
+                Edit
+              </Button>
+            )}
+          </ButtonGroup>
+        </div>
       </CardHeader>
-      <CardBody>{type === 'add' && <AddTab />}</CardBody>
+      <CardBody>
+        <SaveTab isUpdate={type === 'edit'} tabId={tabId} tabName={tabName} />
+      </CardBody>
     </Card>
   );
 }

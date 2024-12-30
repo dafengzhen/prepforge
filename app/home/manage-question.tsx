@@ -1,31 +1,47 @@
 import type { IError } from '@/app/interfaces';
-import type { ChangeEvent, MouseEvent } from 'react';
+import type { ChangeEvent } from 'react';
 
-import { useCreateCustomQuestion } from '@/app/apis/questions';
+import { useCreateCustomQuestion, useUpdateCustomQuestion } from '@/app/apis/questions';
 import useToast from '@/app/hooks/toast';
 import { sanitizeInput } from '@/app/tools';
 import { Button, ButtonGroup, Card, CardBody, CardHeader, Input, Label, Text, Textarea } from 'bootstrap-react-logic';
-import Link from 'next/link';
-import { useState } from 'react';
+import clsx from 'clsx';
+import { useEffect, useState } from 'react';
 
-const AddQuestion = ({
+const SaveQuestion = ({
+  answer,
+  isUpdate,
+  question,
+  questionId,
   tabId,
   tabName,
   tagId,
   tagName,
 }: {
+  answer?: string;
+  isUpdate?: boolean;
+  question?: string;
+  questionId?: number;
   tabId?: number;
   tabName?: string;
   tagId?: number;
   tagName?: string;
 }) => {
   const [form, setForm] = useState({
-    answer: '',
-    question: '',
+    answer: isUpdate ? (answer ?? '') : '',
+    question: isUpdate ? (question ?? '') : '',
   });
   const toastRef = useToast();
   const createCustomQuestion = useCreateCustomQuestion();
-  const isLoading = createCustomQuestion.isPending;
+  const updateCustomQuestion = useUpdateCustomQuestion(questionId);
+  const isLoading = isUpdate ? updateCustomQuestion.isPending : createCustomQuestion.isPending;
+
+  useEffect(() => {
+    setForm({
+      answer: isUpdate ? (answer ?? '') : '',
+      question: isUpdate ? (question ?? '') : '',
+    });
+  }, [answer, isUpdate, question]);
 
   async function onClickSave() {
     const toast = toastRef.current;
@@ -41,13 +57,24 @@ const AddQuestion = ({
     }
 
     try {
-      await createCustomQuestion.mutateAsync({
-        answer: sanitizeInput(answer.trim()),
-        question: question.trim(),
-        tabId,
-        tagId,
-      });
-      setForm({ answer: '', question: '' });
+      const newAnswer = sanitizeInput(answer.trim());
+      const newQuestion = question.trim();
+
+      if (isUpdate) {
+        await updateCustomQuestion.mutateAsync({
+          answer: newAnswer,
+          question: newQuestion,
+        });
+      } else {
+        await createCustomQuestion.mutateAsync({
+          answer: newAnswer,
+          question: newQuestion,
+          tabId,
+          tagId,
+        });
+        setForm({ answer: '', question: '' });
+      }
+
       toast.showToast('Saved successfully', 'success');
     } catch (error) {
       toast.showToast(`Failed to save: ${(error as IError).message}`, 'danger');
@@ -116,47 +143,83 @@ const AddQuestion = ({
 };
 
 export default function ManageQuestion({
+  answer,
+  manageType = 'add',
   onBack,
+  question,
+  questionId,
   tabId,
   tabName,
   tagId,
   tagName,
 }: {
+  answer?: string;
+  manageType?: 'add' | 'edit' | null;
   onBack?: () => void;
+  question?: string;
+  questionId?: number;
   tabId?: number;
   tabName?: string;
   tagId?: number;
   tagName?: string;
 }) {
-  const [type] = useState<'add' | null>('add');
+  const [type, setType] = useState<'add' | 'edit' | null>(manageType);
 
-  function handleBack(e: MouseEvent<HTMLAnchorElement>) {
-    e.preventDefault();
+  function handleBack() {
     onBack?.();
+  }
+
+  function onClickType(type: 'add' | 'edit') {
+    setType(type);
   }
 
   return (
     <Card className="border">
-      <CardHeader className="">
-        <ButtonGroup className="justify-content-between align-items-center gap-2" toolbar>
-          <Link
-            className="link-secondary link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
-            href=""
+      <CardHeader>
+        <ButtonGroup>
+          <Button
             onClick={handleBack}
+            outline="secondary"
+            size="sm"
+            startContent={<i className="bi bi-arrow-left me-1"></i>}
           >
-            <i className="bi bi-arrow-left me-1"></i>
             Back
-          </Link>
+          </Button>
 
-          {!type && (
-            <Button startContent={<i className="bi bi-plus-lg me-1"></i>} variant="secondary">
-              Add
+          <Button
+            className={clsx(type === 'add' && 'active')}
+            onClick={() => onClickType('add')}
+            outline="secondary"
+            size="sm"
+            startContent={<i className="bi bi-plus-lg me-1"></i>}
+          >
+            Add
+          </Button>
+
+          {!!questionId && (!!question || !!answer) && (
+            <Button
+              className={clsx(type === 'edit' && 'active')}
+              onClick={() => onClickType('edit')}
+              outline="secondary"
+              size="sm"
+              startContent={<i className="bi bi-pencil-square me-1"></i>}
+            >
+              Edit
             </Button>
           )}
         </ButtonGroup>
       </CardHeader>
       <CardBody>
-        {type === 'add' && <AddQuestion tabId={tabId} tabName={tabName} tagId={tagId} tagName={tagName} />}
+        <SaveQuestion
+          answer={answer}
+          isUpdate={type === 'edit'}
+          question={question}
+          questionId={questionId}
+          tabId={tabId}
+          tabName={tabName}
+          tagId={tagId}
+          tagName={tagName}
+        />
       </CardBody>
     </Card>
   );

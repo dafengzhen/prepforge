@@ -2,7 +2,7 @@ import type { IError } from '@/app/interfaces';
 import type { IQuestion } from '@/app/interfaces/question';
 import type { ICustomTagDto, ITag } from '@/app/interfaces/tag';
 
-import { POST } from '@/app/constants';
+import { POST, PUT } from '@/app/constants';
 import { useResolvedUrl, useStoredTicket } from '@/app/hooks';
 import {
   buildAuthHeader,
@@ -75,5 +75,27 @@ export const useCreateCustomTag = () => {
       return handleApiResponse(response);
     },
     mutationKey: ['createCustomTag'],
+  });
+};
+
+export const useUpdateCustomTag = (tagId?: number) => {
+  const url = useResolvedUrl(tagId ? `/tags/${tagId}` : null);
+  const ticket = useStoredTicket();
+
+  return useMutation<void, IError, ICustomTagDto>({
+    mutationFn: async (options: ICustomTagDto) => {
+      if (!url) {
+        throw createUrlResolutionError();
+      }
+
+      const response = await fetch(url, {
+        body: JSON.stringify(options),
+        headers: buildHeaders(ticket),
+        method: PUT,
+      });
+
+      return handleApiResponse(response);
+    },
+    mutationKey: ['updateCustomTag'],
   });
 };

@@ -2,7 +2,7 @@ import type { IError } from '@/app/interfaces';
 import type { ICustomTabDto, ITab } from '@/app/interfaces/tab';
 import type { ITag } from '@/app/interfaces/tag';
 
-import { POST } from '@/app/constants';
+import { POST, PUT } from '@/app/constants';
 import { useResolvedUrl, useStoredTicket } from '@/app/hooks';
 import {
   buildAuthHeader,
@@ -75,5 +75,27 @@ export const useCreateCustomTab = () => {
       return handleApiResponse(response);
     },
     mutationKey: ['createCustomTab'],
+  });
+};
+
+export const useUpdateCustomTab = (tabId?: number) => {
+  const url = useResolvedUrl(tabId ? `/tabs/${tabId}` : null);
+  const ticket = useStoredTicket();
+
+  return useMutation<void, IError, ICustomTabDto>({
+    mutationFn: async (options: ICustomTabDto) => {
+      if (!url) {
+        throw createUrlResolutionError();
+      }
+
+      const response = await fetch(url, {
+        body: JSON.stringify(options),
+        headers: buildHeaders(ticket),
+        method: PUT,
+      });
+
+      return handleApiResponse(response);
+    },
+    mutationKey: ['updateCustomTab'],
   });
 };
