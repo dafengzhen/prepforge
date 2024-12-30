@@ -4,6 +4,7 @@ import { useLogin } from '@/app/apis/users';
 import { TK } from '@/app/constants';
 import useToast from '@/app/hooks/toast';
 import { type IError } from '@/app/interfaces';
+import { getPublicPath } from '@/app/tools';
 import { Button, Card, Checkbox, Input, InputGroup, InputGroupText, Label } from 'bootstrap-react-logic';
 import clsx from 'clsx';
 import Image from 'next/image';
@@ -46,7 +47,7 @@ export default function Login() {
       localStorage.setItem(TK, response.token);
       toast.showToast('Login successful', 'primary');
 
-      setTimeout(() => location.assign('/'), 1250);
+      setTimeout(() => location.assign(getPublicPath() + '/'), 1250);
     } catch (error) {
       toast.showToast((error as IError).message, 'danger');
     }

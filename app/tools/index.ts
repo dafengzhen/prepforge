@@ -9,7 +9,7 @@ export const handleApiResponse = async (response: Response, whitelistPath?: stri
       (!Array.isArray(whitelistPath) || (Array.isArray(whitelistPath) && whitelistPath.length === 0))
     ) {
       if (typeof location !== undefined) {
-        location.assign('/login');
+        location.assign(getPublicPath() + '/login');
       }
     }
 
@@ -58,4 +58,8 @@ export const sanitizeInput = (value: string) => {
     allowedAttributes: false,
     nonBooleanAttributes: [],
   });
+};
+
+export const getPublicPath = () => {
+  return process.env.NEXT_PUBLIC_PUBLIC_PATH || '';
 };

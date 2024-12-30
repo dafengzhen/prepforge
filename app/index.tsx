@@ -15,6 +15,7 @@ import ManageQuestion from '@/app/home/manage-question';
 import ManageTab from '@/app/home/manage-tab';
 import ManageTag from '@/app/home/manage-tag';
 import useThemeMode from '@/app/hooks/theme-mode';
+import { getPublicPath } from '@/app/tools';
 import {
   Button,
   Card,
@@ -122,7 +123,7 @@ export default function Home() {
         typeof userProfileQuery.data !== 'object' ||
         Object.keys(userProfileQuery.data).length === 0)
     ) {
-      location.assign('/login');
+      location.assign(getPublicPath() + '/login');
     }
   }, [userProfileQuery.data, userProfileQuery.isSuccess]);
   useEffect(() => {
@@ -155,7 +156,7 @@ export default function Home() {
   }
   function confirmLogout() {
     localStorage.removeItem(TK);
-    location.assign('/login');
+    location.assign(getPublicPath() + '/login');
   }
 
   return (
