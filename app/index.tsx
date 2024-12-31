@@ -97,7 +97,7 @@ export default function Home() {
             ...addTabOption,
             onClick: (e) => {
               e.preventDefault();
-              setActiveManagementType((prevState) => (prevState === 'manageQuestion' ? null : 'manageQuestion'));
+              setActiveManagementType((prevState) => (prevState === 'manageTab' ? null : 'manageTab'));
             },
           },
         ]);
