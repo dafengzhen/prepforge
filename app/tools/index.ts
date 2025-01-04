@@ -56,10 +56,32 @@ export const createUrlResolutionError = (message: string = 'The requested resour
 export const sanitizeInput = (value: string) => {
   return sanitizeHtml(value, {
     allowedAttributes: false,
+    allowedSchemesByTag: {
+      img: ['data'],
+    },
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
     nonBooleanAttributes: [],
   });
 };
 
 export const getPublicPath = () => {
   return process.env.NEXT_PUBLIC_PUBLIC_PATH || '';
+};
+
+const SUPPORTED_URL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'sms:', 'tel:']);
+
+export const sanitizeUrl = (url: string): string => {
+  try {
+    const parsedUrl = new URL(url);
+    if (!SUPPORTED_URL_PROTOCOLS.has(parsedUrl.protocol)) {
+      return 'about:blank';
+    }
+  } catch {
+    return url;
+  }
+  return url;
+};
+
+export const isNumeric = (value: string): boolean => {
+  return !isNaN(parseFloat(value)) && isFinite(Number(value));
 };

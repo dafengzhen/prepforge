@@ -30,9 +30,11 @@ export const useFetchTabs = () => {
 
       return handleApiResponse(response);
     },
-    queryKey: ['fetchTabs', url, ticket],
+    queryKey: [useFetchTabs.key, url, ticket],
   });
 };
+
+useFetchTabs.key = 'fetchTabs';
 
 export const useFetchTagsByTabId = (tabId?: number) => {
   const url = useResolvedUrl(tabId ? `/tabs/${tabId}/tags` : null);
@@ -52,9 +54,11 @@ export const useFetchTagsByTabId = (tabId?: number) => {
       const tab = (await handleApiResponse(response)) as ITab;
       return tab.tags || [];
     },
-    queryKey: ['fetchTagsByTabId', url, ticket, tabId],
+    queryKey: [useFetchTagsByTabId.key, url, ticket, tabId],
   });
 };
+
+useFetchTagsByTabId.key = 'fetchTagsByTabId';
 
 export const useCreateCustomTab = () => {
   const url = useResolvedUrl('/tabs');
@@ -74,9 +78,11 @@ export const useCreateCustomTab = () => {
 
       return handleApiResponse(response);
     },
-    mutationKey: ['createCustomTab'],
+    mutationKey: [useCreateCustomTab.key],
   });
 };
+
+useCreateCustomTab.key = 'createCustomTab';
 
 export const useUpdateCustomTab = (tabId?: number) => {
   const url = useResolvedUrl(tabId ? `/tabs/${tabId}` : null);
@@ -96,6 +102,8 @@ export const useUpdateCustomTab = (tabId?: number) => {
 
       return handleApiResponse(response);
     },
-    mutationKey: ['updateCustomTab'],
+    mutationKey: [useUpdateCustomTab.key],
   });
 };
+
+useUpdateCustomTab.key = 'updateCustomTab';

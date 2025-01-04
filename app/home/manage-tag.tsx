@@ -1,10 +1,11 @@
 import type { IError } from '@/app/interfaces';
 
-import { useCreateCustomTag, useUpdateCustomTag } from '@/app/apis/tags';
+import { useCreateCustomTag, useFetchTags, useUpdateCustomTag } from '@/app/apis/tags';
+import { getQueryClient } from '@/app/get-query-client';
 import useToast from '@/app/hooks/toast';
 import { Button, ButtonGroup, Card, CardBody, CardHeader, Input, Label, Text } from 'bootstrap-react-logic';
 import clsx from 'clsx';
-import { useEffect, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 
 const SaveTag = ({
   isUpdate,
@@ -29,7 +30,10 @@ const SaveTag = ({
     setName(isUpdate ? (tagName ?? '') : '');
   }, [isUpdate, tagName]);
 
-  async function onClickSave() {
+  async function onClickSave(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+
     const toast = toastRef.current;
     if (!toast) {
       return;
@@ -49,14 +53,23 @@ const SaveTag = ({
         setName('');
       }
 
+      refreshQuery();
+
       toast.showToast('Saved successfully', 'success');
     } catch (error) {
       toast.showToast((error as IError).message, 'danger');
     }
   }
+  async function refreshQuery() {
+    const queryClient = getQueryClient();
+    await queryClient.refetchQueries({
+      predicate: (query) => query.queryKey.includes(useFetchTags.key),
+      type: 'active',
+    });
+  }
 
   return (
-    <div>
+    <form onSubmit={onClickSave}>
       {tabName && (
         <div className="mb-3">
           <Label>Selected Tab</Label>
@@ -85,10 +98,10 @@ const SaveTag = ({
         </Text>
       </div>
 
-      <Button className="mt-5 px-5" disabled={isLoading} isLoading={isLoading} onClick={onClickSave} variant="primary">
+      <Button className="mt-5 px-5" disabled={isLoading} isLoading={isLoading} type="submit" variant="primary">
         Save
       </Button>
-    </div>
+    </form>
   );
 };
 

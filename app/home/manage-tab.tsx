@@ -1,6 +1,8 @@
 import type { IError } from '@/app/interfaces';
+import type { FormEvent } from 'react';
 
-import { useCreateCustomTab, useUpdateCustomTab } from '@/app/apis/tabs';
+import { useCreateCustomTab, useFetchTabs, useUpdateCustomTab } from '@/app/apis/tabs';
+import { getQueryClient } from '@/app/get-query-client';
 import useToast from '@/app/hooks/toast';
 import { Button, ButtonGroup, Card, CardBody, CardHeader, Input, Label, Text } from 'bootstrap-react-logic';
 import clsx from 'clsx';
@@ -17,7 +19,10 @@ const SaveTab = ({ isUpdate, tabId, tabName }: { isUpdate?: boolean; tabId?: num
     setName(isUpdate ? (tabName ?? '') : '');
   }, [isUpdate, tabName]);
 
-  async function onClickSave() {
+  async function onClickSave(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+
     const toast = toastRef.current;
     if (!toast) {
       return;
@@ -37,14 +42,24 @@ const SaveTab = ({ isUpdate, tabId, tabName }: { isUpdate?: boolean; tabId?: num
         setName('');
       }
 
+      refreshQuery();
+
       toast.showToast('Saved successfully', 'success');
     } catch (error) {
       toast.showToast((error as IError).message, 'danger');
     }
   }
 
+  async function refreshQuery() {
+    const queryClient = getQueryClient();
+    await queryClient.refetchQueries({
+      predicate: (query) => query.queryKey.includes(useFetchTabs.key),
+      type: 'active',
+    });
+  }
+
   return (
-    <div>
+    <form onSubmit={onClickSave}>
       <Label>Tab Name</Label>
       <Input
         autoFocus
@@ -57,10 +72,10 @@ const SaveTab = ({ isUpdate, tabId, tabName }: { isUpdate?: boolean; tabId?: num
       />
       <Text>Tabs can help organize information and improve navigation efficiency.</Text>
 
-      <Button className="mt-5 px-5" disabled={isLoading} isLoading={isLoading} onClick={onClickSave} variant="primary">
+      <Button className="mt-5 px-5" disabled={isLoading} isLoading={isLoading} type="submit" variant="primary">
         Save
       </Button>
-    </div>
+    </form>
   );
 };
 

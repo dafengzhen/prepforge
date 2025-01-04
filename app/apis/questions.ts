@@ -29,9 +29,11 @@ export const useFetchQuestions = (enabled?: boolean) => {
 
       return handleApiResponse(response);
     },
-    queryKey: ['fetchQuestions', url, ticket],
+    queryKey: [useFetchQuestions.key, url, ticket],
   });
 };
+
+useFetchQuestions.key = 'fetchQuestions';
 
 export const useCreateCustomQuestion = () => {
   const url = useResolvedUrl('/questions');
@@ -51,9 +53,11 @@ export const useCreateCustomQuestion = () => {
 
       return handleApiResponse(response);
     },
-    mutationKey: ['createCustomQuestion'],
+    mutationKey: [useCreateCustomQuestion.key],
   });
 };
+
+useCreateCustomQuestion.key = 'createCustomQuestion';
 
 export const useUpdateCustomQuestion = (questionId?: number) => {
   const url = useResolvedUrl(questionId ? `/questions/${questionId}` : null);
@@ -73,6 +77,8 @@ export const useUpdateCustomQuestion = (questionId?: number) => {
 
       return handleApiResponse(response);
     },
-    mutationKey: ['updateCustomQuestion'],
+    mutationKey: [useUpdateCustomQuestion.key],
   });
 };
+
+useUpdateCustomQuestion.key = 'updateCustomQuestion';

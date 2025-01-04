@@ -1,5 +1,7 @@
+import type { ReactNode, RefObject } from 'react';
+
 import CustomToast, { type CustomToastHandle } from '@/app/components/custom-toast';
-import { createContext, type ReactNode, type RefObject, useRef } from 'react';
+import { createContext, useRef } from 'react';
 
 export type ToastContextType = RefObject<CustomToastHandle | null>;
 

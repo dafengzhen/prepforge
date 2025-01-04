@@ -30,9 +30,11 @@ export const useFetchTags = (enabled?: boolean) => {
 
       return handleApiResponse(response);
     },
-    queryKey: ['fetchTags', url, ticket],
+    queryKey: [useFetchTags.key, url, ticket],
   });
 };
+
+useFetchTags.key = 'fetchTags';
 
 export const useFetchQuestionsByTagId = (tagId?: number) => {
   const url = useResolvedUrl(tagId ? `/tags/${tagId}/questions` : null);
@@ -52,9 +54,11 @@ export const useFetchQuestionsByTagId = (tagId?: number) => {
       const tag = (await handleApiResponse(response)) as ITag;
       return tag.questions || [];
     },
-    queryKey: ['fetchQuestionsByTagId', url, ticket, tagId],
+    queryKey: [useFetchQuestionsByTagId.key, url, ticket, tagId],
   });
 };
+
+useFetchQuestionsByTagId.key = 'fetchQuestionsByTagId';
 
 export const useCreateCustomTag = () => {
   const url = useResolvedUrl('/tags');
@@ -74,9 +78,11 @@ export const useCreateCustomTag = () => {
 
       return handleApiResponse(response);
     },
-    mutationKey: ['createCustomTag'],
+    mutationKey: [useCreateCustomTag.key],
   });
 };
+
+useCreateCustomTag.key = 'createCustomTag';
 
 export const useUpdateCustomTag = (tagId?: number) => {
   const url = useResolvedUrl(tagId ? `/tags/${tagId}` : null);
@@ -96,6 +102,8 @@ export const useUpdateCustomTag = (tagId?: number) => {
 
       return handleApiResponse(response);
     },
-    mutationKey: ['updateCustomTag'],
+    mutationKey: [useUpdateCustomTag.key],
   });
 };
+
+useUpdateCustomTag.key = 'updateCustomTag';

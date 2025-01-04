@@ -1,0 +1,45 @@
+import AutoLinkPlugin from '@/app/editor/plugins/auto-link-plugin';
+import ToolbarPlugin from '@/app/editor/plugins/toolbar-plugin';
+import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable';
+import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin';
+import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
+import { Card, CardBody, CardHeader } from 'bootstrap-react-logic';
+
+export default function CustomEditor({ placeholder = 'Start typing...' }: { placeholder?: string }) {
+  return (
+    <Card className="rounded-4 border">
+      <CardHeader className="bg-transparent border-bottom">
+        <ToolbarPlugin />
+      </CardHeader>
+      <CardBody className="p-0 position-relative">
+        <RichTextPlugin
+          contentEditable={
+            <ContentEditable
+              aria-placeholder={placeholder}
+              className="form-control px-3 rounded-top-0 rounded-bottom-4 border-0"
+              placeholder={
+                <div
+                  className="position-absolute text-secondary pe-none user-select-none overflow-hidden"
+                  style={{ left: '1rem', top: '0.375rem' }}
+                >
+                  {placeholder}
+                </div>
+              }
+              style={{ minHeight: 150 }}
+            />
+          }
+          ErrorBoundary={LexicalErrorBoundary}
+        />
+        <AutoLinkPlugin />
+        <LinkPlugin />
+        <ListPlugin />
+        <HistoryPlugin />
+        <AutoFocusPlugin />
+      </CardBody>
+    </Card>
+  );
+}

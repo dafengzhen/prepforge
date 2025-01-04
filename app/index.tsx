@@ -57,8 +57,10 @@ export default function Home() {
   const [selectedQuestion, setSelectedQuestion] = useState<IQuestion | null>(null);
   const [tagList, setTagList] = useState<ITag[]>([]);
   const [questionList, setQuestionList] = useState<IQuestion[]>([]);
-  const [isLogoutModalVisible, setLogoutModalVisibility] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [modals, setModals] = useState({
+    logout: false,
+  });
 
   const [isDarkModeEnabled, toggleThemeMode] = useThemeMode();
   const userProfileQuery = useFetchUserProfile();
@@ -104,15 +106,16 @@ export default function Home() {
       } else {
         setSidebarOptions(
           tabsQuery.data.map(
-            (tab): SidebarOption => ({
-              icon: <i className="bi bi-folder"></i>,
-              id: tab.id,
-              name: tab.name,
-              onClick: (e) => {
-                e.preventDefault();
-                setSelectedTab((prevTab) => (prevTab?.id === tab.id ? null : tab));
-              },
-            }),
+            (tab: ITab) =>
+              ({
+                icon: <i className="bi bi-folder"></i>,
+                id: tab.id,
+                name: tab.name,
+                onClick: (e) => {
+                  e.preventDefault();
+                  setSelectedTab((prevTab) => (prevTab?.id === tab.id ? null : tab));
+                },
+              }) as SidebarOption,
           ),
         );
       }
@@ -150,15 +153,12 @@ export default function Home() {
   function toggleManagementType(type: 'manageQuestion' | 'manageTab' | 'manageTag') {
     setActiveManagementType((prevType) => (prevType === type ? null : type));
   }
-  function handleLogout() {
-    setLogoutModalVisibility(true);
-  }
-  function closeLogoutModal() {
-    setLogoutModalVisibility(false);
-  }
   function confirmLogout() {
     localStorage.removeItem(TK);
     location.assign(publicPath + '/login');
+  }
+  function toggleModal(modalName: 'logout', isVisible: boolean) {
+    setModals((prev) => ({ ...prev, [modalName]: isVisible }));
   }
 
   return (
@@ -192,7 +192,7 @@ export default function Home() {
                     <Button
                       className="btn border-0 text-secondary"
                       dropOldClass
-                      onClick={handleLogout}
+                      onClick={() => toggleModal('logout', true)}
                       size="sm"
                       startContent={<i className="bi bi-box-arrow-in-right cursor-pointer me-1" title="Logout" />}
                       title="Logout"
@@ -446,30 +446,32 @@ export default function Home() {
       </div>
 
       {isInitialized && (
-        <Modal
-          body={
-            <div className="leading-normal">
-              <div>Are you sure you want to log out?</div>
-              <div className="text-secondary">You will not be able to continue browsing after logging out.</div>
-            </div>
-          }
-          centered
-          footer={
-            <>
-              <Button onClick={closeLogoutModal} type="button" variant="secondary">
-                Cancel
-              </Button>
-              <Button onClick={confirmLogout} type="button" variant="primary">
-                Logout
-              </Button>
-            </>
-          }
-          header={<CloseButton onClick={closeLogoutModal} type="button" />}
-          onVisibleChange={setLogoutModalVisibility}
-          tabIndex={-1}
-          title="PrepForge"
-          visible={isLogoutModalVisible}
-        />
+        <>
+          <Modal
+            body={
+              <div className="leading-normal">
+                <div>Are you sure you want to log out?</div>
+                <div className="text-secondary">You will not be able to continue browsing after logging out.</div>
+              </div>
+            }
+            centered
+            footer={
+              <>
+                <Button onClick={() => toggleModal('logout', false)} type="button" variant="secondary">
+                  Cancel
+                </Button>
+                <Button onClick={confirmLogout} type="button" variant="primary">
+                  Confirm
+                </Button>
+              </>
+            }
+            header={<CloseButton onClick={() => toggleModal('logout', false)} type="button" />}
+            onVisibleChange={(value) => toggleModal('logout', value)}
+            tabIndex={-1}
+            title="PrepForge"
+            visible={modals.logout}
+          />
+        </>
       )}
     </>
   );

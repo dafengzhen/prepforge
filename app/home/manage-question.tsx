@@ -1,11 +1,17 @@
 import type { IError } from '@/app/interfaces';
-import type { ChangeEvent } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
 
-import { useCreateCustomQuestion, useUpdateCustomQuestion } from '@/app/apis/questions';
+import { useCreateCustomQuestion, useFetchQuestions, useUpdateCustomQuestion } from '@/app/apis/questions';
+import CustomEditor from '@/app/components/custom-editor';
+import LexicalProvider from '@/app/editor/provider';
+import { getQueryClient } from '@/app/get-query-client';
 import useToast from '@/app/hooks/toast';
 import { sanitizeInput } from '@/app/tools';
-import { Button, ButtonGroup, Card, CardBody, CardHeader, Input, Label, Text, Textarea } from 'bootstrap-react-logic';
+import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { Button, ButtonGroup, Card, CardBody, CardHeader, Input, Label, Text } from 'bootstrap-react-logic';
 import clsx from 'clsx';
+import { $getRoot, $insertNodes } from 'lexical';
 import { useEffect, useState } from 'react';
 
 const SaveQuestion = ({
@@ -28,36 +34,75 @@ const SaveQuestion = ({
   tagName?: string;
 }) => {
   const [form, setForm] = useState({
-    answer: isUpdate ? (answer ?? '') : '',
     question: isUpdate ? (question ?? '') : '',
   });
   const toastRef = useToast();
   const createCustomQuestion = useCreateCustomQuestion();
   const updateCustomQuestion = useUpdateCustomQuestion(questionId);
   const isLoading = isUpdate ? updateCustomQuestion.isPending : createCustomQuestion.isPending;
+  const [editor] = useLexicalComposerContext();
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
     setForm({
-      answer: isUpdate ? (answer ?? '') : '',
       question: isUpdate ? (question ?? '') : '',
     });
-  }, [answer, isUpdate, question]);
 
-  async function onClickSave() {
+    const _answer = isUpdate ? (answer ?? '') : '';
+    if (isInitialized && isMounted && _answer) {
+      editor.update(() => {
+        const parser = new DOMParser();
+        const dom = parser.parseFromString(_answer, 'text/html');
+        const nodes = $generateNodesFromDOM(editor, dom);
+        const root = $getRoot();
+        root.clear();
+        root.select();
+        $insertNodes(nodes);
+      });
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [answer, editor, isInitialized, isUpdate, question]);
+  useEffect(() => {
+    setIsInitialized(true);
+  }, []);
+
+  function getAnswer() {
+    const htmlString = editor.read(() => $generateHtmlFromNodes(editor, null));
+    return sanitizeInput(htmlString || '').trim();
+  }
+
+  // function onClickSave2(e: FormEvent<HTMLFormElement>) {
+  //   e.preventDefault();
+  //   e.stopPropagation();
+  //
+  //   const answer = getAnswer();
+  //   console.log(answer);
+  // }
+
+  async function onClickSave(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+
     const toast = toastRef.current;
     if (!toast) {
       return;
     }
 
-    const { answer, question } = form;
+    const { question } = form;
+    const answer = getAnswer();
 
-    if (!answer.trim() || !question.trim()) {
+    if (!answer || !question.trim()) {
       toast.showToast('Answer and question cannot be empty', 'danger');
       return;
     }
 
     try {
-      const newAnswer = sanitizeInput(answer.trim());
+      const newAnswer = answer;
       const newQuestion = question.trim();
 
       if (isUpdate) {
@@ -72,8 +117,10 @@ const SaveQuestion = ({
           tabId,
           tagId,
         });
-        setForm({ answer: '', question: '' });
+        setForm({ question: '' });
       }
+
+      refreshQuery();
 
       toast.showToast('Saved successfully', 'success');
     } catch (error) {
@@ -81,12 +128,20 @@ const SaveQuestion = ({
     }
   }
 
+  async function refreshQuery() {
+    const queryClient = getQueryClient();
+    await queryClient.refetchQueries({
+      predicate: (query: { queryKey: string[] }) => query.queryKey.includes(useFetchQuestions.key),
+      type: 'active',
+    });
+  }
+
   function onChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
   return (
-    <div>
+    <form onSubmit={onClickSave}>
       {(tabName || tagName) && (
         <div className="mb-3">
           <Label>Selected Tag</Label>
@@ -124,21 +179,14 @@ const SaveQuestion = ({
 
       <div className="mb-3">
         <Label>Answer</Label>
-        <Textarea
-          disabled={isLoading}
-          name="answer"
-          onChange={onChange}
-          placeholder="Enter the answer"
-          rows={4}
-          value={form.answer}
-        />
+        <CustomEditor placeholder="Enter the answer" />
         <Text>Providing a clear and concise answer helps improve understanding and retention.</Text>
       </div>
 
-      <Button className="mt-5 px-5" disabled={isLoading} isLoading={isLoading} onClick={onClickSave} variant="primary">
+      <Button className="mt-5 px-5" disabled={isLoading} isLoading={isLoading} type="submit" variant="primary">
         Save
       </Button>
-    </div>
+    </form>
   );
 };
 
@@ -174,53 +222,55 @@ export default function ManageQuestion({
   }
 
   return (
-    <Card className="border">
-      <CardHeader>
-        <ButtonGroup>
-          <Button
-            onClick={handleBack}
-            outline="secondary"
-            size="sm"
-            startContent={<i className="bi bi-arrow-left me-1"></i>}
-          >
-            Back
-          </Button>
-
-          <Button
-            className={clsx(type === 'add' && 'active')}
-            onClick={() => onClickType('add')}
-            outline="secondary"
-            size="sm"
-            startContent={<i className="bi bi-plus-lg me-1"></i>}
-          >
-            Add
-          </Button>
-
-          {!!questionId && (!!question || !!answer) && (
+    <LexicalProvider>
+      <Card className="border">
+        <CardHeader>
+          <ButtonGroup>
             <Button
-              className={clsx(type === 'edit' && 'active')}
-              onClick={() => onClickType('edit')}
+              onClick={handleBack}
               outline="secondary"
               size="sm"
-              startContent={<i className="bi bi-pencil-square me-1"></i>}
+              startContent={<i className="bi bi-arrow-left me-1"></i>}
             >
-              Edit
+              Back
             </Button>
-          )}
-        </ButtonGroup>
-      </CardHeader>
-      <CardBody>
-        <SaveQuestion
-          answer={answer}
-          isUpdate={type === 'edit'}
-          question={question}
-          questionId={questionId}
-          tabId={tabId}
-          tabName={tabName}
-          tagId={tagId}
-          tagName={tagName}
-        />
-      </CardBody>
-    </Card>
+
+            <Button
+              className={clsx(type === 'add' && 'active')}
+              onClick={() => onClickType('add')}
+              outline="secondary"
+              size="sm"
+              startContent={<i className="bi bi-plus-lg me-1"></i>}
+            >
+              Add
+            </Button>
+
+            {!!questionId && (!!question || !!answer) && (
+              <Button
+                className={clsx(type === 'edit' && 'active')}
+                onClick={() => onClickType('edit')}
+                outline="secondary"
+                size="sm"
+                startContent={<i className="bi bi-pencil-square me-1"></i>}
+              >
+                Edit
+              </Button>
+            )}
+          </ButtonGroup>
+        </CardHeader>
+        <CardBody>
+          <SaveQuestion
+            answer={answer}
+            isUpdate={type === 'edit'}
+            question={question}
+            questionId={questionId}
+            tabId={tabId}
+            tabName={tabName}
+            tagId={tagId}
+            tagName={tagName}
+          />
+        </CardBody>
+      </Card>
+    </LexicalProvider>
   );
 }
