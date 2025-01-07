@@ -7,7 +7,7 @@ import type { SidebarOption } from 'bootstrap-react-logic';
 import type { MouseEvent } from 'react';
 
 import { useFetchQuestions } from '@/app/apis/questions';
-import { useFetchTabs, useFetchTagsByTabId } from '@/app/apis/tabs';
+import { useFetchQuestionsByTabId, useFetchTabs, useFetchTagsByTabId } from '@/app/apis/tabs';
 import { useFetchQuestionsByTagId, useFetchTags } from '@/app/apis/tags';
 import { useFetchUserProfile } from '@/app/apis/users';
 import { TK } from '@/app/constants';
@@ -69,6 +69,7 @@ export default function Home() {
   const tagsByTabIdQuery = useFetchTagsByTabId(selectedTab?.id);
   const questionsQuery = useFetchQuestions(!selectedTab && !selectedTag);
   const questionsByTagIdQuery = useFetchQuestionsByTagId(selectedTag?.id);
+  const questionsByTabIdQuery = useFetchQuestionsByTabId(selectedTab?.id);
   const isAllQuestionsExpanded = useMemo(() => questionList.some((question) => !!question.expand), [questionList]);
 
   useEffect(() => {
@@ -81,6 +82,11 @@ export default function Home() {
       setQuestionList(questionsByTagIdQuery.data);
     }
   }, [questionsByTagIdQuery.data]);
+  useEffect(() => {
+    if (questionsByTabIdQuery.data) {
+      setQuestionList(questionsByTabIdQuery.data);
+    }
+  }, [questionsByTabIdQuery.data]);
   useEffect(() => {
     if (!selectedTab && tagsQuery.data) {
       setTagList(tagsQuery.data);

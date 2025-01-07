@@ -1,4 +1,5 @@
 import type { IError } from '@/app/interfaces';
+import type { IQuestion } from '@/app/interfaces/question';
 import type { ICustomTabDto, ITab } from '@/app/interfaces/tab';
 import type { ITag } from '@/app/interfaces/tag';
 
@@ -59,6 +60,30 @@ export const useFetchTagsByTabId = (tabId?: number) => {
 };
 
 useFetchTagsByTabId.key = 'fetchTagsByTabId';
+
+export const useFetchQuestionsByTabId = (tabId?: number) => {
+  const url = useResolvedUrl(tabId ? `/tabs/${tabId}/questions` : null);
+  const ticket = useStoredTicket();
+
+  return useQuery<IQuestion[], IError>({
+    enabled: isDefinedAndNotEmpty(url, ticket, tabId),
+    queryFn: async () => {
+      if (!url) {
+        throw createUrlResolutionError();
+      }
+
+      const response = await fetch(url, {
+        headers: buildAuthHeader(ticket),
+      });
+
+      const tab = (await handleApiResponse(response)) as ITab;
+      return tab.questions || [];
+    },
+    queryKey: [useFetchQuestionsByTabId.key, url, ticket, tabId],
+  });
+};
+
+useFetchQuestionsByTabId.key = 'fetchQuestionsByTabId';
 
 export const useCreateCustomTab = () => {
   const url = useResolvedUrl('/tabs');

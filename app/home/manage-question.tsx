@@ -2,6 +2,7 @@ import type { IError } from '@/app/interfaces';
 import type { ChangeEvent, FormEvent } from 'react';
 
 import { useCreateCustomQuestion, useFetchQuestions, useUpdateCustomQuestion } from '@/app/apis/questions';
+import { useFetchQuestionsByTabId } from '@/app/apis/tabs';
 import CustomEditor from '@/app/components/custom-editor';
 import LexicalProvider from '@/app/editor/provider';
 import { getQueryClient } from '@/app/get-query-client';
@@ -130,8 +131,9 @@ const SaveQuestion = ({
 
   async function refreshQuery() {
     const queryClient = getQueryClient();
+    const key = tabId ? useFetchQuestionsByTabId.key : useFetchQuestions.key;
     await queryClient.refetchQueries({
-      predicate: (query: { queryKey: string[] }) => query.queryKey.includes(useFetchQuestions.key),
+      predicate: (query: { queryKey: string[] }) => query.queryKey.includes(key),
       type: 'active',
     });
   }
