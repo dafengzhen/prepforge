@@ -367,7 +367,10 @@ export default function Home() {
                           return (
                             <div className={clsx(question.expand ? 'col-12' : 'col')} key={question.id}>
                               <Card className="h-100 rounded-4 border">
-                                <CardBody className="overflow-hidden position-relative" style={{ maxHeight: 512 }}>
+                                <CardBody
+                                  className="overflow-hidden position-relative"
+                                  style={{ maxHeight: question.expand ? undefined : 512 }}
+                                >
                                   <CardTitle className="leading-normal mb-3">
                                     <Link
                                       className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
