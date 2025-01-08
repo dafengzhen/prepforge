@@ -50,9 +50,9 @@ const SaveTab = ({ isUpdate, tabId, tabName }: { isUpdate?: boolean; tabId?: num
     }
   }
 
-  async function refreshQuery() {
+  function refreshQuery() {
     const queryClient = getQueryClient();
-    await queryClient.refetchQueries({
+    queryClient.refetchQueries({
       predicate: (query) => query.queryKey.includes(useFetchTabs.key),
       type: 'active',
     });
@@ -100,41 +100,39 @@ export default function ManageTab({
 
   return (
     <Card className="border">
-      <CardHeader>
-        <div className="d-flex justify-content-between align-items-center gap-2">
-          <ButtonGroup>
+      <CardHeader className="text-end">
+        <ButtonGroup>
+          <Button
+            onClick={handleBack}
+            outline="secondary"
+            size="sm"
+            startContent={<i className="bi bi-arrow-left me-1"></i>}
+          >
+            Back
+          </Button>
+
+          <Button
+            className={clsx(type === 'add' && 'active')}
+            onClick={() => onClickType('add')}
+            outline="secondary"
+            size="sm"
+            startContent={<i className="bi bi-plus-lg me-1"></i>}
+          >
+            Add
+          </Button>
+
+          {!!tabId && !!tabName && (
             <Button
-              onClick={handleBack}
+              className={clsx(type === 'edit' && 'active')}
+              onClick={() => onClickType('edit')}
               outline="secondary"
               size="sm"
-              startContent={<i className="bi bi-arrow-left me-1"></i>}
+              startContent={<i className="bi bi-pencil-square me-1"></i>}
             >
-              Back
+              Edit
             </Button>
-
-            <Button
-              className={clsx(type === 'add' && 'active')}
-              onClick={() => onClickType('add')}
-              outline="secondary"
-              size="sm"
-              startContent={<i className="bi bi-plus-lg me-1"></i>}
-            >
-              Add
-            </Button>
-
-            {!!tabId && !!tabName && (
-              <Button
-                className={clsx(type === 'edit' && 'active')}
-                onClick={() => onClickType('edit')}
-                outline="secondary"
-                size="sm"
-                startContent={<i className="bi bi-pencil-square me-1"></i>}
-              >
-                Edit
-              </Button>
-            )}
-          </ButtonGroup>
-        </div>
+          )}
+        </ButtonGroup>
       </CardHeader>
       <CardBody>
         <SaveTab isUpdate={type === 'edit'} tabId={tabId} tabName={tabName} />

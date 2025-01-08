@@ -305,10 +305,10 @@ export default function Home() {
                       }}
                       question={selectedQuestion?.question}
                       questionId={selectedQuestion?.id}
-                      tabId={selectedTab?.id ?? selectedTag?.tab?.id}
-                      tabName={selectedTab?.name ?? selectedTag?.tab?.name}
-                      tagId={selectedTag?.id}
-                      tagName={selectedTag?.name}
+                      tabId={selectedTab?.id ?? selectedTag?.tab?.id ?? selectedQuestion?.tab?.id}
+                      tabName={selectedTab?.name ?? selectedTag?.tab?.name ?? selectedQuestion?.tab?.name}
+                      tagId={selectedTag?.id ?? selectedQuestion?.tag?.id}
+                      tagName={selectedTag?.name ?? selectedQuestion?.tag?.name}
                     />
                   )}
                 </div>
@@ -398,12 +398,25 @@ export default function Home() {
                                     ></i>
                                   </div>
                                 </CardBody>
-                                <CardFooter className="border-top d-flex gap-2 align-items-center justify-content-between">
-                                  <CardText className="card-text small text-secondary" dropOldClass>
+                                <CardFooter className="border-top d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                                  <CardText className="card-text small text-secondary flex-shrink-0" dropOldClass>
                                     {format(question.updateDate || question.createDate, 'yyyy-MM-dd')}
                                   </CardText>
 
                                   <div className="hstack gap-1">
+                                    {question.tab && (
+                                      <div className="rounded bg-secondary-subtle px-2">
+                                        <Link
+                                          className="small link-secondary text-decoration-none cursor-not-allowed"
+                                          href=""
+                                          onClick={(e) => e.preventDefault()}
+                                        >
+                                          <i className="bi bi-folder me-1"></i>
+                                          {question.tab.name}
+                                        </Link>
+                                      </div>
+                                    )}
+
                                     {question.tag && (
                                       <div className="rounded bg-secondary-subtle px-2">
                                         <Link

@@ -229,8 +229,6 @@ export class CustomImageNode extends DecoratorNode<ReactNode> {
   }
 
   updateFromJSON(serializedNode: LexicalUpdateJSON<SerializedImageNode>): this {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
     return super.updateFromJSON(serializedNode);
   }
 }

@@ -60,9 +60,10 @@ const SaveTag = ({
       toast.showToast((error as IError).message, 'danger');
     }
   }
-  async function refreshQuery() {
+
+  function refreshQuery() {
     const queryClient = getQueryClient();
-    await queryClient.refetchQueries({
+    queryClient.refetchQueries({
       predicate: (query) => query.queryKey.includes(useFetchTags.key),
       type: 'active',
     });
@@ -130,7 +131,7 @@ export default function ManageTag({
 
   return (
     <Card className="border">
-      <CardHeader>
+      <CardHeader className="text-end">
         <ButtonGroup>
           <Button
             onClick={handleBack}

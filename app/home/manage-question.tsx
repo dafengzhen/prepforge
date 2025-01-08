@@ -3,6 +3,7 @@ import type { ChangeEvent, FormEvent } from 'react';
 
 import { useCreateCustomQuestion, useFetchQuestions, useUpdateCustomQuestion } from '@/app/apis/questions';
 import { useFetchQuestionsByTabId } from '@/app/apis/tabs';
+import { useFetchQuestionsByTagId } from '@/app/apis/tags';
 import CustomEditor from '@/app/components/custom-editor';
 import LexicalProvider from '@/app/editor/provider';
 import { getQueryClient } from '@/app/get-query-client';
@@ -110,6 +111,8 @@ const SaveQuestion = ({
         await updateCustomQuestion.mutateAsync({
           answer: newAnswer,
           question: newQuestion,
+          tabId,
+          tagId,
         });
       } else {
         await createCustomQuestion.mutateAsync({
@@ -129,13 +132,29 @@ const SaveQuestion = ({
     }
   }
 
-  async function refreshQuery() {
+  function refreshQuery() {
     const queryClient = getQueryClient();
-    const key = tabId ? useFetchQuestionsByTabId.key : useFetchQuestions.key;
-    await queryClient.refetchQueries({
-      predicate: (query: { queryKey: string[] }) => query.queryKey.includes(key),
-      type: 'active',
-    });
+
+    if (tabId) {
+      queryClient.refetchQueries({
+        predicate: (query: { queryKey: string[] }) => query.queryKey.includes(useFetchQuestionsByTabId.key),
+        type: 'active',
+      });
+    }
+
+    if (tagId) {
+      queryClient.refetchQueries({
+        predicate: (query: { queryKey: string[] }) => query.queryKey.includes(useFetchQuestionsByTagId.key),
+        type: 'active',
+      });
+    }
+
+    if (!tabId && !tagId) {
+      queryClient.refetchQueries({
+        predicate: (query: { queryKey: string[] }) => query.queryKey.includes(useFetchQuestions.key),
+        type: 'active',
+      });
+    }
   }
 
   function onChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -226,7 +245,7 @@ export default function ManageQuestion({
   return (
     <LexicalProvider>
       <Card className="border">
-        <CardHeader>
+        <CardHeader className="text-end">
           <ButtonGroup>
             <Button
               onClick={handleBack}
