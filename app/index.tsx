@@ -23,7 +23,10 @@ import {
   CardFooter,
   CardText,
   CardTitle,
+  Checkbox,
   CloseButton,
+  Input,
+  Label,
   Modal,
   Sidebar,
 } from 'bootstrap-react-logic';
@@ -31,7 +34,7 @@ import clsx from 'clsx';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 
 const publicPath = getPublicPath();
 
@@ -61,6 +64,10 @@ export default function Home() {
   const [modals, setModals] = useState({
     logout: false,
   });
+  const [searchValue, setSearchValue] = useState('');
+  const deferredSearchValue = useDeferredValue(searchValue);
+  const isStale = searchValue !== deferredSearchValue;
+  const [includeContent, setIncludeContent] = useState(false);
 
   const [isDarkModeEnabled, toggleThemeMode] = useThemeMode();
   const userProfileQuery = useFetchUserProfile();
@@ -70,7 +77,22 @@ export default function Home() {
   const questionsQuery = useFetchQuestions(!selectedTab && !selectedTag);
   const questionsByTagIdQuery = useFetchQuestionsByTagId(selectedTag?.id);
   const questionsByTabIdQuery = useFetchQuestionsByTabId(selectedTab?.id);
-  const isAllQuestionsExpanded = useMemo(() => questionList.some((question) => !!question.expand), [questionList]);
+  const filteredQuestionList = useMemo(() => {
+    const value = deferredSearchValue.trim();
+    if (value) {
+      if (includeContent) {
+        return questionList.filter((item) => item.question?.includes(value) || item.answer?.includes(value));
+      } else {
+        return questionList.filter((item) => item.question?.includes(value));
+      }
+    } else {
+      return questionList;
+    }
+  }, [deferredSearchValue, includeContent, questionList]);
+  const isAllQuestionsExpanded = useMemo(
+    () => filteredQuestionList.some((question) => !!question.expand),
+    [filteredQuestionList],
+  );
 
   useEffect(() => {
     if (!selectedTab && !selectedTag && questionsQuery.data) {
@@ -315,6 +337,33 @@ export default function Home() {
               ) : (
                 <>
                   <div className="container py-3">
+                    <div className="vstack gap-2">
+                      <Label className="text-secondary">Search</Label>
+                      <Input
+                        endContent={<i className="bi bi-search text-secondary"></i>}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                        placeholder="Please enter"
+                        startEndContentClasses={{
+                          container: (originalClass) => clsx(originalClass, 'w-100'),
+                        }}
+                        type="search"
+                        value={searchValue}
+                      />
+                      <div className="d-flex gap-2">
+                        <Checkbox
+                          checked={includeContent}
+                          id="includeContent"
+                          name="includeContent"
+                          onChange={(e) => setIncludeContent(e.target.checked)}
+                          value="includeContent"
+                        />
+                        <Label className="text-secondary user-select-none" formCheckLabel htmlFor="includeContent">
+                          Include Content
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="container py-3">
                     <div className="d-flex align-items-center justify-content-between">
                       <div className="row row-cols-auto g-2">
                         {tagList.map((tag) => {
@@ -336,7 +385,7 @@ export default function Home() {
                         })}
                       </div>
 
-                      {questionList.length > 0 && (
+                      {filteredQuestionList.length > 0 && (
                         <div className="row row-cols-auto g-2">
                           <div className="col">
                             <Button
@@ -360,10 +409,16 @@ export default function Home() {
                       )}
                     </div>
                   </div>
-                  <div className="container py-3">
+                  <div
+                    className="container py-3"
+                    style={{
+                      opacity: isStale ? 0.5 : 1,
+                      transition: isStale ? 'opacity 0.2s 0.2s linear' : 'opacity 0s 0s linear',
+                    }}
+                  >
                     <div className="row row-cols-3 g-3">
-                      {questionList.length > 0 ? (
-                        questionList.map((question) => {
+                      {filteredQuestionList.length > 0 ? (
+                        filteredQuestionList.map((question) => {
                           return (
                             <div className={clsx(question.expand ? 'col-12' : 'col')} key={question.id}>
                               <Card className="h-100 rounded-4 border">

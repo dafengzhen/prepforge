@@ -63,6 +63,8 @@ const SaveQuestion = ({
         root.select();
         $insertNodes(nodes);
       });
+    } else if (!isUpdate) {
+      editor.update(() => $getRoot().clear());
     }
 
     return () => {
