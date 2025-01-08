@@ -124,6 +124,7 @@ const SaveQuestion = ({
         setForm({ question: '' });
       }
 
+      editor.update(() => $getRoot().clear());
       refreshQuery();
 
       toast.showToast('Saved successfully', 'success');
