@@ -122,9 +122,9 @@ const SaveQuestion = ({
           tagId,
         });
         setForm({ question: '' });
+        editor.update(() => $getRoot().clear());
       }
 
-      editor.update(() => $getRoot().clear());
       refreshQuery();
 
       toast.showToast('Saved successfully', 'success');
