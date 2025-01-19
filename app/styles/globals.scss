@@ -76,3 +76,11 @@ input[type='search']::-ms-clear {
 input[type='search']::-webkit-search-cancel-button {
   display: none;
 }
+
+.max-h-screen {
+  max-height: 100vh;
+}
+
+.pointer-events-auto {
+  pointer-events: auto;
+}
