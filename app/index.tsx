@@ -1,21 +1,25 @@
 'use client';
 
+import type { IError } from '@/app/interfaces';
 import type { IQuestion } from '@/app/interfaces/question';
 import type { ITab } from '@/app/interfaces/tab';
 import type { ITag } from '@/app/interfaces/tag';
 import type { SidebarOption } from 'bootstrap-react-logic';
 import type { MouseEvent } from 'react';
 
-import { useFetchQuestions } from '@/app/apis/questions';
+import { useDeleteCustomQuestion, useFetchQuestions } from '@/app/apis/questions';
 import { useFetchQuestionsByTabId, useFetchTabs, useFetchTagsByTabId } from '@/app/apis/tabs';
 import { useFetchQuestionsByTagId, useFetchTags } from '@/app/apis/tags';
 import { useFetchUserProfile } from '@/app/apis/users';
-import { TK } from '@/app/constants';
+import { getQueryClient } from '@/app/get-query-client';
 import ManageQuestion from '@/app/home/manage-question';
 import ManageTab from '@/app/home/manage-tab';
 import ManageTag from '@/app/home/manage-tag';
 import useThemeMode from '@/app/hooks/theme-mode';
+import useToast from '@/app/hooks/toast';
 import { getPublicPath } from '@/app/tools';
+import { eventBus } from '@/app/tools/event-bus';
+import { EVENT_UNAUTHORIZED } from '@/app/tools/event-types';
 import {
   Button,
   Card,
@@ -62,12 +66,15 @@ export default function Home() {
   const [questionList, setQuestionList] = useState<IQuestion[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [modals, setModals] = useState({
+    deleteQuestion: false,
     logout: false,
   });
   const [searchValue, setSearchValue] = useState('');
   const deferredSearchValue = useDeferredValue(searchValue);
   const isStale = searchValue !== deferredSearchValue;
   const [includeContent, setIncludeContent] = useState(false);
+  const [caseSensitive, setCaseSensitive] = useState(false);
+  const toastRef = useToast();
 
   const [isDarkModeEnabled, toggleThemeMode] = useThemeMode();
   const userProfileQuery = useFetchUserProfile();
@@ -77,18 +84,25 @@ export default function Home() {
   const questionsQuery = useFetchQuestions(!selectedTab && !selectedTag);
   const questionsByTagIdQuery = useFetchQuestionsByTagId(selectedTag?.id);
   const questionsByTabIdQuery = useFetchQuestionsByTabId(selectedTab?.id);
+  const deleteCustomQuestionQuery = useDeleteCustomQuestion(selectedQuestion?.id);
   const filteredQuestionList = useMemo(() => {
     const value = deferredSearchValue.trim();
     if (value) {
-      if (includeContent) {
-        return questionList.filter((item) => item.question?.includes(value) || item.answer?.includes(value));
-      } else {
-        return questionList.filter((item) => item.question?.includes(value));
-      }
+      const searchValue = caseSensitive ? value : value.toLowerCase();
+      return questionList.filter((item) => {
+        const questionText = caseSensitive ? item.question : item.question?.toLowerCase();
+        const answerText = caseSensitive ? item.answer : item.answer?.toLowerCase();
+
+        if (includeContent) {
+          return questionText?.includes(searchValue) || answerText?.includes(searchValue);
+        } else {
+          return questionText?.includes(searchValue);
+        }
+      });
     } else {
       return questionList;
     }
-  }, [deferredSearchValue, includeContent, questionList]);
+  }, [deferredSearchValue, includeContent, questionList, caseSensitive]);
   const isAllQuestionsExpanded = useMemo(
     () => filteredQuestionList.some((question) => !!question.expand),
     [filteredQuestionList],
@@ -182,11 +196,48 @@ export default function Home() {
     setActiveManagementType((prevType) => (prevType === type ? null : type));
   }
   function confirmLogout() {
-    localStorage.removeItem(TK);
+    eventBus.emit(EVENT_UNAUTHORIZED);
     location.assign(publicPath + '/login');
   }
-  function toggleModal(modalName: 'logout', isVisible: boolean) {
+  async function confirmDeleteQuestion() {
+    const toast = toastRef.current;
+    if (!toast) {
+      return;
+    }
+
+    if (!selectedQuestion) {
+      toast.showToast('The question to be deleted does not exist', 'danger');
+      return;
+    }
+
+    try {
+      await deleteCustomQuestionQuery.mutateAsync();
+      toast.showToast('Deleted successfully', 'success');
+
+      setSelectedQuestion(null);
+      refetchQueriesByKey(useFetchQuestions.key);
+
+      if (selectedTab) {
+        refetchQueriesByKey(useFetchQuestionsByTabId.key);
+      }
+
+      if (selectedTag) {
+        refetchQueriesByKey(useFetchQuestionsByTagId.key);
+      }
+
+      toggleModal('deleteQuestion', false);
+    } catch (error) {
+      toast.showToast((error as IError).message, 'danger');
+    }
+  }
+  function toggleModal(modalName: 'deleteQuestion' | 'logout', isVisible: boolean = true) {
     setModals((prev) => ({ ...prev, [modalName]: isVisible }));
+  }
+  async function refetchQueriesByKey(key: string) {
+    getQueryClient().refetchQueries({
+      predicate: (query: { queryKey: string[] }) => query.queryKey.includes(key),
+      type: 'active',
+    });
   }
 
   return (
@@ -297,6 +348,51 @@ export default function Home() {
                   </Button>
                 </div>
               </div>
+
+              {!activeManagementType && (
+                <div className="container py-3">
+                  <div className="vstack gap-2">
+                    <Label className="text-secondary">Search</Label>
+                    <Input
+                      endContent={<i className="bi bi-search text-secondary"></i>}
+                      onChange={(e) => setSearchValue(e.target.value)}
+                      placeholder="Please enter"
+                      startEndContentClasses={{
+                        container: (originalClass) => clsx(originalClass, 'w-100'),
+                      }}
+                      type="search"
+                      value={searchValue}
+                    />
+                    <div className="d-flex gap-3">
+                      <div className="d-flex gap-2">
+                        <Checkbox
+                          checked={includeContent}
+                          id="includeContent"
+                          name="includeContent"
+                          onChange={(e) => setIncludeContent(e.target.checked)}
+                          value="includeContent"
+                        />
+                        <Label className="text-secondary user-select-none" formCheckLabel htmlFor="includeContent">
+                          Include Content
+                        </Label>
+                      </div>
+
+                      <div className="d-flex gap-2">
+                        <Checkbox
+                          checked={caseSensitive}
+                          id="caseSensitive"
+                          name="caseSensitive"
+                          onChange={(e) => setCaseSensitive(e.target.checked)}
+                          value="caseSensitive"
+                        />
+                        <Label className="text-secondary user-select-none" formCheckLabel htmlFor="caseSensitive">
+                          Case Sensitive
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex-grow-1 overflow-y-auto">
               {activeManagementType ? (
@@ -336,33 +432,6 @@ export default function Home() {
                 </div>
               ) : (
                 <>
-                  <div className="container py-3">
-                    <div className="vstack gap-2">
-                      <Label className="text-secondary">Search</Label>
-                      <Input
-                        endContent={<i className="bi bi-search text-secondary"></i>}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        placeholder="Please enter"
-                        startEndContentClasses={{
-                          container: (originalClass) => clsx(originalClass, 'w-100'),
-                        }}
-                        type="search"
-                        value={searchValue}
-                      />
-                      <div className="d-flex gap-2">
-                        <Checkbox
-                          checked={includeContent}
-                          id="includeContent"
-                          name="includeContent"
-                          onChange={(e) => setIncludeContent(e.target.checked)}
-                          value="includeContent"
-                        />
-                        <Label className="text-secondary user-select-none" formCheckLabel htmlFor="includeContent">
-                          Include Content
-                        </Label>
-                      </div>
-                    </div>
-                  </div>
                   <div className="container py-3">
                     <div className="d-flex align-items-center justify-content-between">
                       <div className="row row-cols-auto g-2">
@@ -452,6 +521,13 @@ export default function Home() {
                                       onClick={() => {
                                         setSelectedQuestion(question);
                                         setActiveManagementType('manageQuestion');
+                                      }}
+                                    ></i>
+                                    <i
+                                      className="bi bi-trash cursor-pointer ms-1"
+                                      onClick={() => {
+                                        setSelectedQuestion(question);
+                                        toggleModal('deleteQuestion');
                                       }}
                                     ></i>
                                   </div>
@@ -547,6 +623,35 @@ export default function Home() {
             tabIndex={-1}
             title="PrepForge"
             visible={modals.logout}
+          />
+
+          <Modal
+            body={
+              <div className="leading-normal">
+                <div>Are you sure you want to delete this question?</div>
+                {selectedQuestion && (
+                  <div className="text-secondary">
+                    Question: <span className="text-danger fw-bold">{selectedQuestion.question}</span>
+                  </div>
+                )}
+              </div>
+            }
+            centered
+            footer={
+              <>
+                <Button onClick={() => toggleModal('deleteQuestion', false)} type="button" variant="secondary">
+                  Cancel
+                </Button>
+                <Button onClick={confirmDeleteQuestion} type="button" variant="primary">
+                  Delete
+                </Button>
+              </>
+            }
+            header={<CloseButton onClick={() => toggleModal('deleteQuestion', false)} type="button" />}
+            onVisibleChange={(value) => toggleModal('deleteQuestion', value)}
+            tabIndex={-1}
+            title="PrepForge"
+            visible={modals.deleteQuestion}
           />
         </>
       )}

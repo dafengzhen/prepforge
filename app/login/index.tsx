@@ -1,7 +1,7 @@
 'use client';
 
 import { useLogin } from '@/app/apis/users';
-import { TK } from '@/app/constants';
+import { useSetToken } from '@/app/hooks';
 import useToast from '@/app/hooks/toast';
 import { type IError } from '@/app/interfaces';
 import { getPublicPath } from '@/app/tools';
@@ -22,6 +22,7 @@ export default function Login() {
   const toastRef = useToast();
   const login = useLogin();
   const isLoading = login.isPending || login.isSuccess;
+  const setToken = useSetToken();
 
   async function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -46,7 +47,7 @@ export default function Login() {
 
     try {
       const response = await login.mutateAsync({ password: password.trim(), username: username.trim() });
-      localStorage.setItem(TK, response.token);
+      setToken(response.token);
       toast.showToast('Login successful', 'primary');
 
       setTimeout(() => location.assign(publicPath + '/'), 1250);
@@ -119,7 +120,7 @@ export default function Login() {
           </InputGroup>
 
           <Button className="mt-5" disabled={isLoading} isLoading={login.isPending} type="submit" variant="primary">
-            Login
+            Login / Register
           </Button>
 
           <div className="form-check">
@@ -129,14 +130,18 @@ export default function Login() {
               id="terms-and-privacy-checkbox"
               onChange={(e) => setTermsAccepted(e.target.checked)}
             />
-            <Label className="user-select-none text-secondary" formCheckLabel htmlFor="terms-and-privacy-checkbox">
+            <Label
+              className="user-select-none text-secondary cursor-pointer"
+              formCheckLabel
+              htmlFor="terms-and-privacy-checkbox"
+            >
               I have read and agree to the Terms of Service and Privacy Policy
             </Label>
           </div>
         </form>
 
         <p className="text-center small text-body-tertiary position-absolute bottom-0 start-50 translate-middle-x">
-          {`© ${currentDate.getFullYear()} PrepForge, Inc.`}
+          {`Copyright (c) ${currentDate.getFullYear()} PrepForge`}
         </p>
       </Card>
     </div>

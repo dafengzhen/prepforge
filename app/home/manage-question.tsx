@@ -138,6 +138,11 @@ const SaveQuestion = ({
   function refreshQuery() {
     const queryClient = getQueryClient();
 
+    queryClient.refetchQueries({
+      predicate: (query: { queryKey: string[] }) => query.queryKey.includes(useFetchQuestions.key),
+      type: 'active',
+    });
+
     if (tabId) {
       queryClient.refetchQueries({
         predicate: (query: { queryKey: string[] }) => query.queryKey.includes(useFetchQuestionsByTabId.key),
@@ -148,13 +153,6 @@ const SaveQuestion = ({
     if (tagId) {
       queryClient.refetchQueries({
         predicate: (query: { queryKey: string[] }) => query.queryKey.includes(useFetchQuestionsByTagId.key),
-        type: 'active',
-      });
-    }
-
-    if (!tabId && !tagId) {
-      queryClient.refetchQueries({
-        predicate: (query: { queryKey: string[] }) => query.queryKey.includes(useFetchQuestions.key),
         type: 'active',
       });
     }

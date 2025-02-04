@@ -1,5 +1,6 @@
 import { TK } from '@/app/constants';
-import { useEffect, useState } from 'react';
+import { AuthContext } from '@/app/contexts/auth';
+import { useContext, useEffect, useState } from 'react';
 
 const baseUrl = process.env.NEXT_PUBLIC_API_SERVER || '';
 
@@ -16,18 +17,22 @@ export const useResolvedUrl = (path: null | string | undefined) => {
 };
 
 export const useStoredTicket = () => {
-  const [token, setToken] = useState<null | string | undefined>(null);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useStoredTicket must be used within an AuthProvider');
+  }
 
-  useEffect(() => {
-    const value = localStorage.getItem(TK);
-    if (value) {
-      if (value === 'null' || value === 'undefined' || value === 'true' || value === 'false') {
-        localStorage.removeItem(TK);
-      } else {
-        setToken(localStorage.getItem(TK));
-      }
-    }
-  }, []);
+  return context.token;
+};
 
-  return token;
+export const useSetToken = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useSetToken must be used within an AuthProvider');
+  }
+
+  return (token: string) => {
+    context.setToken(token);
+    localStorage.setItem(TK, token);
+  };
 };

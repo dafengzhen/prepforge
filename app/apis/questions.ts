@@ -1,7 +1,7 @@
 import type { IError } from '@/app/interfaces';
 import type { ICustomQuestionDto, IQuestion } from '@/app/interfaces/question';
 
-import { POST, PUT } from '@/app/constants';
+import { DELETE, POST, PUT } from '@/app/constants';
 import { useResolvedUrl, useStoredTicket } from '@/app/hooks';
 import {
   buildAuthHeader,
@@ -82,3 +82,26 @@ export const useUpdateCustomQuestion = (questionId?: number) => {
 };
 
 useUpdateCustomQuestion.key = 'updateCustomQuestion';
+
+export const useDeleteCustomQuestion = (questionId?: number) => {
+  const url = useResolvedUrl(questionId ? `/questions/${questionId}` : null);
+  const ticket = useStoredTicket();
+
+  return useMutation<void, IError, void>({
+    mutationFn: async () => {
+      if (!url) {
+        throw createUrlResolutionError();
+      }
+
+      const response = await fetch(url, {
+        headers: buildAuthHeader(ticket),
+        method: DELETE,
+      });
+
+      return handleApiResponse(response);
+    },
+    mutationKey: [useDeleteCustomQuestion.key],
+  });
+};
+
+useDeleteCustomQuestion.key = 'deleteCustomQuestion';

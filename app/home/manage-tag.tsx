@@ -1,5 +1,6 @@
 import type { IError } from '@/app/interfaces';
 
+import { useFetchTagsByTabId } from '@/app/apis/tabs';
 import { useCreateCustomTag, useFetchTags, useUpdateCustomTag } from '@/app/apis/tags';
 import { getQueryClient } from '@/app/get-query-client';
 import useToast from '@/app/hooks/toast';
@@ -67,6 +68,13 @@ const SaveTag = ({
       predicate: (query) => query.queryKey.includes(useFetchTags.key),
       type: 'active',
     });
+
+    if (tabId) {
+      queryClient.refetchQueries({
+        predicate: (query) => query.queryKey.includes(useFetchTagsByTabId.key),
+        type: 'active',
+      });
+    }
   }
 
   return (

@@ -1,5 +1,6 @@
 'use client';
 
+import { AuthProvider } from '@/app/contexts/auth';
 import { ToastProvider } from '@/app/contexts/toast';
 import { getQueryClient } from '@/app/get-query-client';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -15,7 +16,9 @@ export default function Providers({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>{children}</ToastProvider>
+      <AuthProvider>
+        <ToastProvider>{children}</ToastProvider>
+      </AuthProvider>
       <ReactQueryDevtools />
     </QueryClientProvider>
   );

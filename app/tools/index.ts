@@ -1,16 +1,21 @@
 import { AUTHORIZATION, BEARER } from '@/app/constants';
+import { eventBus } from '@/app/tools/event-bus';
+import { EVENT_UNAUTHORIZED } from '@/app/tools/event-types';
 import sanitizeHtml from 'sanitize-html';
 
 export const handleApiResponse = async (response: Response, whitelistPath?: string[]) => {
   if (!response.ok) {
     const error = await response.json();
+    if (error.statusCode === 401 && typeof localStorage !== undefined && typeof location !== undefined) {
+      eventBus.emit(EVENT_UNAUTHORIZED);
+    }
+
     if (
       error.statusCode === 401 &&
-      (!Array.isArray(whitelistPath) || (Array.isArray(whitelistPath) && whitelistPath.length === 0))
+      (!Array.isArray(whitelistPath) || (Array.isArray(whitelistPath) && whitelistPath.length === 0)) &&
+      typeof location !== undefined
     ) {
-      if (typeof location !== undefined) {
-        location.assign(getPublicPath() + '/login');
-      }
+      location.assign(getPublicPath() + '/login');
     }
 
     return Promise.reject(error);
