@@ -1,7 +1,7 @@
 import { KEY_PREFIX } from '@/app/constants';
 import { useCallback, useEffect, useState } from 'react';
 
-const STORAGE_KEY = `${KEY_PREFIX}darkMode`;
+const STORAGE_KEY = `${KEY_PREFIX}config_darkMode`;
 
 const updateThemeAttribute = (isDark: boolean) => {
   document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');

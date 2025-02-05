@@ -30,9 +30,11 @@ export const useLogin = () => {
 
       return handleApiResponse(response, ['/login']);
     },
-    mutationKey: ['login'],
+    mutationKey: [useLogin.key],
   });
 };
+
+useLogin.key = 'login';
 
 export const useFetchUserProfile = () => {
   const url = useResolvedUrl('/users/profile');
@@ -51,6 +53,8 @@ export const useFetchUserProfile = () => {
 
       return handleApiResponse(response);
     },
-    queryKey: ['fetchUserProfile', url, ticket],
+    queryKey: [useFetchUserProfile.key, url, ticket],
   });
 };
+
+useFetchUserProfile.key = 'fetchUserProfile';

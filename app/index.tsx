@@ -634,7 +634,7 @@ export default function Home() {
                   {(currentPage > totalPages || totalPages > 1) && (
                     <div className="container py-3 pb-4">
                       <div className="row">
-                        {currentPage > totalPages && (
+                        {currentPage > totalPages && questionList.length > 0 && (
                           <div className="col">
                             <Button
                               className="w-100"
