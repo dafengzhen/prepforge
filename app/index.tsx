@@ -631,9 +631,22 @@ export default function Home() {
                       )}
                     </div>
                   </div>
-                  {totalPages > 1 && (
+                  {(currentPage > totalPages || totalPages > 1) && (
                     <div className="container py-3 pb-4">
                       <div className="row">
+                        {currentPage > totalPages && (
+                          <div className="col">
+                            <Button
+                              className="w-100"
+                              onClick={() => setCurrentPage(1)}
+                              type="button"
+                              variant="secondary"
+                            >
+                              Back to Home
+                            </Button>
+                          </div>
+                        )}
+
                         <div className="col">
                           <Button
                             className="w-100"
