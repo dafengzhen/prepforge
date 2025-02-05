@@ -55,6 +55,8 @@ const addTabOption: SidebarOption = {
 };
 
 export default function Home() {
+  const itemsPerPage = 10;
+
   const [sidebarOptions, setSidebarOptions] = useState<SidebarOption[]>([loadingPlaceholderOption]);
   const [activeManagementType, setActiveManagementType] = useState<'manageQuestion' | 'manageTab' | 'manageTag' | null>(
     null,
@@ -74,8 +76,9 @@ export default function Home() {
   const isStale = searchValue !== deferredSearchValue;
   const [includeContent, setIncludeContent] = useState(false);
   const [caseSensitive, setCaseSensitive] = useState(false);
-  const toastRef = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
 
+  const toastRef = useToast();
   const [isDarkModeEnabled, toggleThemeMode] = useThemeMode();
   const userProfileQuery = useFetchUserProfile();
   const tabsQuery = useFetchTabs();
@@ -103,6 +106,15 @@ export default function Home() {
       return questionList;
     }
   }, [deferredSearchValue, includeContent, questionList, caseSensitive]);
+  const paginatedQuestionList = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredQuestionList.slice(startIndex, endIndex);
+  }, [currentPage, filteredQuestionList]);
+  const totalPages = useMemo(
+    () => Math.ceil(filteredQuestionList.length / itemsPerPage),
+    [filteredQuestionList.length],
+  );
   const isAllQuestionsExpanded = useMemo(
     () => filteredQuestionList.some((question) => !!question.expand),
     [filteredQuestionList],
@@ -199,6 +211,10 @@ export default function Home() {
     eventBus.emit(EVENT_UNAUTHORIZED);
     location.assign(publicPath + '/login');
   }
+  function cancelDeleteQuestion() {
+    setSelectedQuestion(null);
+    toggleModal('deleteQuestion', false);
+  }
   async function confirmDeleteQuestion() {
     const toast = toastRef.current;
     if (!toast) {
@@ -238,6 +254,25 @@ export default function Home() {
       predicate: (query: { queryKey: string[] }) => query.queryKey.includes(key),
       type: 'active',
     });
+  }
+  function prevPage() {
+    setCurrentPage((prev) => (prev > 1 ? prev - 1 : prev));
+  }
+  function nextPage() {
+    setCurrentPage((prev) => (prev < totalPages ? prev + 1 : prev));
+  }
+  function loadMorePage() {
+    const toast = toastRef.current;
+    if (!toast) {
+      return;
+    }
+
+    if (currentPage === totalPages || totalPages === 0) {
+      toast.showToast('No more data available', 'primary');
+      return;
+    }
+
+    nextPage();
   }
 
   return (
@@ -454,7 +489,7 @@ export default function Home() {
                         })}
                       </div>
 
-                      {filteredQuestionList.length > 0 && (
+                      {paginatedQuestionList.length > 0 && (
                         <div className="row row-cols-auto g-2">
                           <div className="col">
                             <Button
@@ -486,11 +521,16 @@ export default function Home() {
                     }}
                   >
                     <div className="row row-cols-3 g-3">
-                      {filteredQuestionList.length > 0 ? (
-                        filteredQuestionList.map((question) => {
+                      {paginatedQuestionList.length > 0 ? (
+                        paginatedQuestionList.map((question) => {
                           return (
                             <div className={clsx(question.expand ? 'col-12' : 'col')} key={question.id}>
-                              <Card className="h-100 rounded-4 border">
+                              <Card
+                                className={clsx(
+                                  'h-100 rounded-4 border',
+                                  selectedQuestion?.id === question.id && 'border-primary-subtle',
+                                )}
+                              >
                                 <CardBody
                                   className="overflow-hidden position-relative"
                                   style={{ maxHeight: question.expand ? undefined : 512 }}
@@ -591,6 +631,39 @@ export default function Home() {
                       )}
                     </div>
                   </div>
+                  {totalPages > 1 && (
+                    <div className="container py-3 pb-4">
+                      <div className="row">
+                        <div className="col">
+                          <Button
+                            className="w-100"
+                            disabled={currentPage === 1}
+                            onClick={prevPage}
+                            type="button"
+                            variant="primary"
+                          >
+                            Prev Page
+                          </Button>
+                        </div>
+                        <div className="col">
+                          <Button className="w-100" onClick={loadMorePage} type="button" variant="primary">
+                            {`Load More (${currentPage} - ${totalPages})`}
+                          </Button>
+                        </div>
+                        <div className="col">
+                          <Button
+                            className="w-100"
+                            disabled={currentPage === totalPages || totalPages === 0}
+                            onClick={nextPage}
+                            type="button"
+                            variant="primary"
+                          >
+                            Next Page
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -639,7 +712,7 @@ export default function Home() {
             centered
             footer={
               <>
-                <Button onClick={() => toggleModal('deleteQuestion', false)} type="button" variant="secondary">
+                <Button onClick={cancelDeleteQuestion} type="button" variant="secondary">
                   Cancel
                 </Button>
                 <Button onClick={confirmDeleteQuestion} type="button" variant="primary">
@@ -647,8 +720,11 @@ export default function Home() {
                 </Button>
               </>
             }
-            header={<CloseButton onClick={() => toggleModal('deleteQuestion', false)} type="button" />}
-            onVisibleChange={(value) => toggleModal('deleteQuestion', value)}
+            header={<CloseButton onClick={cancelDeleteQuestion} type="button" />}
+            onVisibleChange={(value) => {
+              setSelectedQuestion(null);
+              toggleModal('deleteQuestion', value);
+            }}
             tabIndex={-1}
             title="PrepForge"
             visible={modals.deleteQuestion}
