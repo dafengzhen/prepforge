@@ -267,7 +267,7 @@ export default function Home() {
       return;
     }
 
-    if (currentPage === totalPages || totalPages === 0) {
+    if (currentPage > totalPages || currentPage === totalPages || totalPages === 0) {
       toast.showToast('No more data available', 'primary');
       return;
     }
@@ -646,14 +646,20 @@ export default function Home() {
                           </Button>
                         </div>
                         <div className="col">
-                          <Button className="w-100" onClick={loadMorePage} type="button" variant="primary">
-                            {`Load More (${currentPage} - ${totalPages})`}
+                          <Button
+                            className="w-100"
+                            disabled={currentPage > totalPages}
+                            onClick={loadMorePage}
+                            type="button"
+                            variant="primary"
+                          >
+                            {currentPage > totalPages ? 'Load More' : `Load More (${currentPage} - ${totalPages})`}
                           </Button>
                         </div>
                         <div className="col">
                           <Button
                             className="w-100"
-                            disabled={currentPage === totalPages || totalPages === 0}
+                            disabled={currentPage > totalPages || currentPage === totalPages || totalPages === 0}
                             onClick={nextPage}
                             type="button"
                             variant="primary"
