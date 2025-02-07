@@ -523,174 +523,181 @@ export default function Home() {
                   )}
                 </div>
               ) : (
-                <div
-                  className="container py-3"
-                  style={{
-                    opacity: isStale ? 0.5 : 1,
-                    transition: isStale ? 'opacity 0.2s 0.2s linear' : 'opacity 0s 0s linear',
-                  }}
-                >
-                  <div className="row row-cols-3 g-3">
-                    {paginatedQuestionList.length > 0 ? (
-                      paginatedQuestionList.map((question) => {
-                        return (
-                          <div className={clsx(question.expand ? 'col-12' : 'col')} key={question.id}>
-                            <Card
-                              className={clsx(
-                                'h-100 rounded-4 border',
-                                selectedQuestion?.id === question.id && 'border-primary-subtle',
-                              )}
-                            >
-                              <CardBody
-                                className="overflow-hidden position-relative"
-                                style={{ maxHeight: question.expand ? undefined : 512 }}
-                              >
-                                <CardTitle className="leading-normal mb-3">
-                                  <Link
-                                    className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
-                                    href=""
-                                    onClick={(e) => toggleQuestionExpansion(e, question)}
-                                  >
-                                    {question.question}
-                                  </Link>
-                                </CardTitle>
-
-                                {question.answer && (
-                                  <CardText
-                                    className={clsx('text-body-secondary lh-lg', !question.expand && 'text-ellipsis')}
-                                    dangerouslySetInnerHTML={{ __html: question.answer }}
-                                  />
+                <>
+                  <div
+                    className="container py-3"
+                    style={{
+                      opacity: isStale ? 0.5 : 1,
+                      transition: isStale ? 'opacity 0.2s 0.2s linear' : 'opacity 0s 0s linear',
+                    }}
+                  >
+                    <div className="row row-cols-3 g-3">
+                      {paginatedQuestionList.length > 0 ? (
+                        paginatedQuestionList.map((question) => {
+                          return (
+                            <div className={clsx(question.expand ? 'col-12' : 'col')} key={question.id}>
+                              <Card
+                                className={clsx(
+                                  'h-100 rounded-4 border',
+                                  selectedQuestion?.id === question.id && 'border-primary-subtle',
                                 )}
-
-                                <div
-                                  className="position-absolute bottom-0 start-50 translate-middle-x w-100 px-3 text-end pt-1 text-secondary"
-                                  style={{ background: 'var(--bs-card-cap-bg)' }}
+                              >
+                                <CardBody
+                                  className="overflow-hidden position-relative"
+                                  style={{ maxHeight: question.expand ? undefined : 512 }}
                                 >
-                                  <i
-                                    className="bi bi-pencil-square cursor-pointer"
-                                    onClick={() => {
-                                      setSelectedQuestion(question);
-                                      setActiveManagementType('manageQuestion');
-                                    }}
-                                  ></i>
-                                  <i
-                                    className="bi bi-trash cursor-pointer ms-1"
-                                    onClick={() => {
-                                      setSelectedQuestion(question);
-                                      toggleModal('deleteQuestion');
-                                    }}
-                                  ></i>
-                                </div>
-                              </CardBody>
-                              <CardFooter className="border-top d-flex flex-wrap gap-2 align-items-center justify-content-between">
-                                <CardText className="card-text small text-secondary flex-shrink-0" dropOldClass>
-                                  {format(question.updateDate || question.createDate, 'yyyy-MM-dd')}
-                                </CardText>
-
-                                <div className="hstack gap-1">
-                                  {question.tab && (
-                                    <div className="rounded bg-secondary-subtle px-2">
-                                      <Link
-                                        className="small link-secondary text-decoration-none cursor-not-allowed"
-                                        href=""
-                                        onClick={(e) => e.preventDefault()}
-                                      >
-                                        <i className="bi bi-folder me-1"></i>
-                                        {question.tab.name}
-                                      </Link>
-                                    </div>
-                                  )}
-
-                                  {question.tag && (
-                                    <div className="rounded bg-secondary-subtle px-2">
-                                      <Link
-                                        className="small link-secondary text-decoration-none cursor-not-allowed"
-                                        href=""
-                                        onClick={(e) => e.preventDefault()}
-                                      >
-                                        <i className="bi bi-tag me-1"></i>
-                                        {question.tag.name}
-                                      </Link>
-                                    </div>
-                                  )}
-
-                                  <div className="rounded bg-secondary-subtle px-2">
+                                  <CardTitle className="leading-normal mb-3">
                                     <Link
-                                      className="small link-secondary text-decoration-none"
+                                      className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
                                       href=""
                                       onClick={(e) => toggleQuestionExpansion(e, question)}
                                     >
-                                      {question.expand ? 'Collapse' : 'Read More'}
+                                      {question.question}
                                     </Link>
-                                  </div>
-                                </div>
-                              </CardFooter>
-                            </Card>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="col-12" style={{ height: 420 }}>
-                        <Card
-                          cardBody
-                          className="h-100 rounded-4 border d-flex align-items-center justify-content-center bg-body-tertiary"
-                        >
-                          <div className="fs-5 text-secondary text-opacity-50">No Data</div>
-                        </Card>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+                                  </CardTitle>
 
-            {(currentPage > totalPages || totalPages > 1) && questionList.length > 0 && (
-              <div className="container py-3 pb-4">
-                <div className="row">
-                  {currentPage > totalPages && questionList.length > 0 && filteredQuestionList.length > 0 && (
-                    <div className="col">
-                      <Button className="w-100" onClick={() => setCurrentPage(1)} type="button" variant="secondary">
-                        Back to Home
-                      </Button>
+                                  {question.answer && (
+                                    <CardText
+                                      className={clsx('text-body-secondary lh-lg', !question.expand && 'text-ellipsis')}
+                                      dangerouslySetInnerHTML={{ __html: question.answer }}
+                                    />
+                                  )}
+
+                                  <div
+                                    className="position-absolute bottom-0 start-50 translate-middle-x w-100 px-3 text-end pt-1 text-secondary"
+                                    style={{ background: 'var(--bs-card-cap-bg)' }}
+                                  >
+                                    <i
+                                      className="bi bi-pencil-square cursor-pointer"
+                                      onClick={() => {
+                                        setSelectedQuestion(question);
+                                        setActiveManagementType('manageQuestion');
+                                      }}
+                                    ></i>
+                                    <i
+                                      className="bi bi-trash cursor-pointer ms-1"
+                                      onClick={() => {
+                                        setSelectedQuestion(question);
+                                        toggleModal('deleteQuestion');
+                                      }}
+                                    ></i>
+                                  </div>
+                                </CardBody>
+                                <CardFooter className="border-top d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                                  <CardText className="card-text small text-secondary flex-shrink-0" dropOldClass>
+                                    {format(question.updateDate || question.createDate, 'yyyy-MM-dd')}
+                                  </CardText>
+
+                                  <div className="hstack gap-1">
+                                    {question.tab && (
+                                      <div className="rounded bg-secondary-subtle px-2">
+                                        <Link
+                                          className="small link-secondary text-decoration-none cursor-not-allowed"
+                                          href=""
+                                          onClick={(e) => e.preventDefault()}
+                                        >
+                                          <i className="bi bi-folder me-1"></i>
+                                          {question.tab.name}
+                                        </Link>
+                                      </div>
+                                    )}
+
+                                    {question.tag && (
+                                      <div className="rounded bg-secondary-subtle px-2">
+                                        <Link
+                                          className="small link-secondary text-decoration-none cursor-not-allowed"
+                                          href=""
+                                          onClick={(e) => e.preventDefault()}
+                                        >
+                                          <i className="bi bi-tag me-1"></i>
+                                          {question.tag.name}
+                                        </Link>
+                                      </div>
+                                    )}
+
+                                    <div className="rounded bg-secondary-subtle px-2">
+                                      <Link
+                                        className="small link-secondary text-decoration-none"
+                                        href=""
+                                        onClick={(e) => toggleQuestionExpansion(e, question)}
+                                      >
+                                        {question.expand ? 'Collapse' : 'Read More'}
+                                      </Link>
+                                    </div>
+                                  </div>
+                                </CardFooter>
+                              </Card>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="col-12" style={{ height: 420 }}>
+                          <Card
+                            cardBody
+                            className="h-100 rounded-4 border d-flex align-items-center justify-content-center bg-body-tertiary"
+                          >
+                            <div className="fs-5 text-secondary text-opacity-50">No Data</div>
+                          </Card>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {(currentPage > totalPages || totalPages > 1) && questionList.length > 0 && (
+                    <div className="container py-3 pb-4">
+                      <div className="row">
+                        {currentPage > totalPages && questionList.length > 0 && filteredQuestionList.length > 0 && (
+                          <div className="col">
+                            <Button
+                              className="w-100"
+                              onClick={() => setCurrentPage(1)}
+                              type="button"
+                              variant="secondary"
+                            >
+                              Back to Home
+                            </Button>
+                          </div>
+                        )}
+
+                        <div className="col">
+                          <Button
+                            className="w-100"
+                            disabled={currentPage === 1}
+                            onClick={prevPage}
+                            type="button"
+                            variant="primary"
+                          >
+                            Prev Page
+                          </Button>
+                        </div>
+                        <div className="col">
+                          <Button
+                            className="w-100"
+                            disabled={currentPage > totalPages}
+                            onClick={loadMorePage}
+                            type="button"
+                            variant="primary"
+                          >
+                            {currentPage > totalPages ? 'Load More' : `Load More (${currentPage} - ${totalPages})`}
+                          </Button>
+                        </div>
+                        <div className="col">
+                          <Button
+                            className="w-100"
+                            disabled={currentPage > totalPages || currentPage === totalPages || totalPages === 0}
+                            onClick={nextPage}
+                            type="button"
+                            variant="primary"
+                          >
+                            Next Page
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   )}
-
-                  <div className="col">
-                    <Button
-                      className="w-100"
-                      disabled={currentPage === 1}
-                      onClick={prevPage}
-                      type="button"
-                      variant="primary"
-                    >
-                      Prev Page
-                    </Button>
-                  </div>
-                  <div className="col">
-                    <Button
-                      className="w-100"
-                      disabled={currentPage > totalPages}
-                      onClick={loadMorePage}
-                      type="button"
-                      variant="primary"
-                    >
-                      {currentPage > totalPages ? 'Load More' : `Load More (${currentPage} - ${totalPages})`}
-                    </Button>
-                  </div>
-                  <div className="col">
-                    <Button
-                      className="w-100"
-                      disabled={currentPage > totalPages || currentPage === totalPages || totalPages === 0}
-                      onClick={nextPage}
-                      type="button"
-                      variant="primary"
-                    >
-                      Next Page
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
