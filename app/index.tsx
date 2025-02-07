@@ -15,7 +15,7 @@ import { getQueryClient } from '@/app/get-query-client';
 import ManageQuestion from '@/app/home/manage-question';
 import ManageTab from '@/app/home/manage-tab';
 import ManageTag from '@/app/home/manage-tag';
-import useThemeMode from '@/app/hooks/theme-mode';
+import { useTheme } from '@/app/hooks';
 import useToast from '@/app/hooks/toast';
 import { getPublicPath } from '@/app/tools';
 import { eventBus } from '@/app/tools/event-bus';
@@ -79,7 +79,8 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const toastRef = useToast();
-  const [isDarkModeEnabled, toggleThemeMode] = useThemeMode();
+  const { isDarkMode, toggleTheme } = useTheme();
+
   const userProfileQuery = useFetchUserProfile();
   const tabsQuery = useFetchTabs();
   const tagsQuery = useFetchTags(!selectedTab);
@@ -88,24 +89,35 @@ export default function Home() {
   const questionsByTagIdQuery = useFetchQuestionsByTagId(selectedTag?.id);
   const questionsByTabIdQuery = useFetchQuestionsByTabId(selectedTab?.id);
   const deleteCustomQuestionQuery = useDeleteCustomQuestion(selectedQuestion?.id);
+
   const filteredQuestionList = useMemo(() => {
     const value = deferredSearchValue.trim();
     if (value) {
-      const searchValue = caseSensitive ? value : value.toLowerCase();
+      const searchValues = caseSensitive ? value.split(/\s+/) : value.toLowerCase().split(/\s+/);
+
       return questionList.filter((item) => {
-        const questionText = caseSensitive ? item.question : item.question?.toLowerCase();
-        const answerText = caseSensitive ? item.answer : item.answer?.toLowerCase();
+        const questionMatch = item.question
+          ? searchValues.every((keyword) =>
+              caseSensitive ? item.question!.includes(keyword) : item.question!.toLowerCase().includes(keyword),
+            )
+          : false;
 
         if (includeContent) {
-          return questionText?.includes(searchValue) || answerText?.includes(searchValue);
+          const descriptionMatch = item.answer
+            ? searchValues.every((keyword) =>
+                caseSensitive ? item.answer!.includes(keyword) : item.answer!.toLowerCase().includes(keyword),
+              )
+            : false;
+
+          return questionMatch || descriptionMatch;
         } else {
-          return questionText?.includes(searchValue);
+          return questionMatch;
         }
       });
     } else {
       return questionList;
     }
-  }, [deferredSearchValue, includeContent, questionList, caseSensitive]);
+  }, [caseSensitive, deferredSearchValue, questionList, includeContent]);
   const paginatedQuestionList = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -288,19 +300,16 @@ export default function Home() {
                     <Button
                       className="btn border-0 text-secondary"
                       dropOldClass
-                      onClick={toggleThemeMode}
+                      onClick={toggleTheme}
                       size="sm"
                       startContent={
                         <i
-                          className={clsx(
-                            'bi me-1',
-                            isDarkModeEnabled ? 'bi-moon-stars-fill' : 'bi-brightness-high-fill',
-                          )}
+                          className={clsx('bi me-1', isDarkMode ? 'bi-moon-stars-fill' : 'bi-brightness-high-fill')}
                         ></i>
                       }
                       title="Toggle Theme"
                     >
-                      {isDarkModeEnabled ? 'Dark' : 'Light'}
+                      {isDarkMode ? 'Dark' : 'Light'}
                     </Button>
 
                     <Button
@@ -634,7 +643,7 @@ export default function Home() {
                   {(currentPage > totalPages || totalPages > 1) && (
                     <div className="container py-3 pb-4">
                       <div className="row">
-                        {currentPage > totalPages && questionList.length > 0 && (
+                        {currentPage > totalPages && questionList.length > 0 && filteredQuestionList.length > 0 && (
                           <div className="col">
                             <Button
                               className="w-100"

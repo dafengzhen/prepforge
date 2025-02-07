@@ -1,13 +1,24 @@
 import { KEY_PREFIX } from '@/app/constants';
-import { useCallback, useEffect, useState } from 'react';
+import { createContext, type ReactNode, useCallback, useEffect, useState } from 'react';
 
 const STORAGE_KEY = `${KEY_PREFIX}config_darkMode`;
+
+interface ThemeContextType {
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+}
 
 const updateThemeAttribute = (isDark: boolean) => {
   document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
 };
 
-function useThemeMode(): [boolean, () => void] {
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export const ThemeProvider = ({
+  children,
+}: Readonly<{
+  children: ReactNode;
+}>) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
@@ -30,7 +41,5 @@ function useThemeMode(): [boolean, () => void] {
     });
   }, []);
 
-  return [isDarkMode, toggleTheme];
-}
-
-export default useThemeMode;
+  return <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>{children}</ThemeContext.Provider>;
+};

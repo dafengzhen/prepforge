@@ -1,5 +1,6 @@
 import { TK } from '@/app/constants';
 import { AuthContext } from '@/app/contexts/auth';
+import { ThemeContext } from '@/app/contexts/theme';
 import { useContext, useEffect, useState } from 'react';
 
 const baseUrl = process.env.NEXT_PUBLIC_API_SERVER || '';
@@ -35,4 +36,12 @@ export const useSetToken = () => {
     context.setToken(token);
     localStorage.setItem(TK, token);
   };
+};
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
 };
