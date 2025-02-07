@@ -10,6 +10,7 @@ import { AutoLinkNode, LinkNode } from '@lexical/link';
 import { ListItemNode, ListNode } from '@lexical/list';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { HeadingNode } from '@lexical/rich-text';
+import { TableCellNode, TableNode, TableRowNode } from '@lexical/table';
 import { ParagraphNode } from 'lexical';
 
 // Catch any errors that occur during Lexical updates and log them
@@ -26,6 +27,9 @@ const initialConfig: InitialConfigType = {
     LinkNode,
     ListItemNode,
     ListNode,
+    TableNode,
+    TableCellNode,
+    TableRowNode,
     CustomParagraphNode,
     CodeHighlightNode,
     CodeNode,

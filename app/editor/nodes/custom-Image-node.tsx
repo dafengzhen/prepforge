@@ -25,7 +25,7 @@ import {
   DecoratorNode,
   KEY_BACKSPACE_COMMAND,
 } from 'lexical';
-import ImageNext from 'next/image';
+import NextImage from 'next/image';
 import { useCallback, useEffect, useRef } from 'react';
 
 export interface ImagePayload {
@@ -118,7 +118,7 @@ const ImageComponent = ({
   }, [editor, onClick, onDelete]);
 
   return (
-    <ImageNext
+    <NextImage
       alt={altText}
       className={clsx(isFocused && 'img-focused user-select-none')}
       height={height}

@@ -1,4 +1,5 @@
 import AutoLinkPlugin from '@/app/editor/plugins/auto-link-plugin';
+import CodeHighlightPlugin from '@/app/editor/plugins/code-highlight-plugin';
 import ToolbarPlugin from '@/app/editor/plugins/toolbar-plugin';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -7,6 +8,7 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
+import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { Card, CardBody, CardHeader } from 'bootstrap-react-logic';
 
 export default function CustomEditor({ placeholder = 'Start typing...' }: { placeholder?: string }) {
@@ -34,11 +36,13 @@ export default function CustomEditor({ placeholder = 'Start typing...' }: { plac
           }
           ErrorBoundary={LexicalErrorBoundary}
         />
+        <AutoFocusPlugin />
         <AutoLinkPlugin />
+        <CodeHighlightPlugin />
+        <HistoryPlugin />
         <LinkPlugin />
         <ListPlugin />
-        <HistoryPlugin />
-        <AutoFocusPlugin />
+        <TablePlugin hasHorizontalScroll />
       </CardBody>
     </Card>
   );

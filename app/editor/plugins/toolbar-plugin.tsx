@@ -5,6 +5,7 @@ import { $createImageNode, INSERT_IMAGE_COMMAND } from '@/app/editor/nodes/custo
 import { $createCustomParagraphNode, $isCustomParagraphNode } from '@/app/editor/nodes/custom-paragraph-node';
 import { getSelectedNode } from '@/app/editor/tools';
 import { isNumeric, sanitizeUrl } from '@/app/tools';
+import { $createCodeNode, $isCodeNode } from '@lexical/code';
 import { $createLinkNode, $isAutoLinkNode, $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import {
   $isListNode,
@@ -16,6 +17,7 @@ import {
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $createHeadingNode, $isHeadingNode } from '@lexical/rich-text';
 import { $forEachSelectedTextNode, $setBlocksType } from '@lexical/selection';
+import { INSERT_TABLE_COMMAND } from '@lexical/table';
 import { $findMatchingParent, $getNearestNodeOfType, $wrapNodeInElement, mergeRegister } from '@lexical/utils';
 import { Button, ButtonGroup, CloseButton, Input, Label, Modal } from 'bootstrap-react-logic';
 import clsx from 'clsx';
@@ -57,6 +59,7 @@ export default function ToolbarPlugin() {
   const [textAlign, setTextAlign] = useState<'center' | 'justify' | 'left' | 'right' | null>(null);
   const [listType, setListType] = useState<'bullet' | 'check' | 'number' | null>(null);
   const [isCode, setIsCode] = useState(false);
+  const [isCodeBlock, setIsCodeBlock] = useState(false);
   const [isLink, setIsLink] = useState(false);
   const [linkValue, setLinkValue] = useState('https://');
   const [imageValue, setImageValue] = useState<{
@@ -76,7 +79,11 @@ export default function ToolbarPlugin() {
   const [modals, setModals] = useState({
     image: false,
     link: false,
+    table: false,
   });
+  const [rows, setRows] = useState('');
+  const [columns, setColumns] = useState('');
+  const [isDisabled, setIsDisabled] = useState(true);
 
   const linkElementRef = useRef<HTMLInputElement>(null);
   const imageFileElementRef = useRef<HTMLInputElement>(null);
@@ -135,6 +142,10 @@ export default function ToolbarPlugin() {
         setLinkValue(linkParent.getURL());
       } else if ($isLinkNode(selectedNode)) {
         setLinkValue(selectedNode.getURL());
+      } else if ($isCodeNode(element)) {
+        setIsCodeBlock(true);
+      } else {
+        setIsCodeBlock(false);
       }
 
       // isLink
@@ -264,6 +275,15 @@ export default function ToolbarPlugin() {
     }
   }, [modals.link]);
   useEffect(() => {
+    const row = Number(rows);
+    const column = Number(columns);
+    if (row && row > 0 && row <= 500 && column && column > 0 && column <= 50) {
+      setIsDisabled(false);
+    } else {
+      setIsDisabled(true);
+    }
+  }, [rows, columns]);
+  useEffect(() => {
     setIsInitialized(true);
   }, []);
 
@@ -317,6 +337,13 @@ export default function ToolbarPlugin() {
       toggleModal('image', false);
     }
   }
+  function confirmTable() {
+    editor.dispatchCommand(INSERT_TABLE_COMMAND, {
+      columns: columns + '',
+      rows: rows + '',
+    });
+    toggleModal('table', false);
+  }
   function insertImage(value: string, width: number, height: number) {
     editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
       altText: 'image',
@@ -332,7 +359,7 @@ export default function ToolbarPlugin() {
       imageFileElementRef.current.value = '';
     }
   }
-  function toggleModal(modalName: 'image' | 'link', isVisible: boolean) {
+  function toggleModal(modalName: 'image' | 'link' | 'table', isVisible: boolean = true) {
     setModals((prev) => ({ ...prev, [modalName]: isVisible }));
   }
   function handleImageLoad(value: string, callback: (width: number, height: number) => void) {
@@ -349,6 +376,24 @@ export default function ToolbarPlugin() {
       console.error('Failed to load the image.');
     };
     img.src = value!;
+  }
+  function formatCodeBlock() {
+    editor.update(() => {
+      let selection = $getSelection();
+      if (selection !== null) {
+        if (selection.isCollapsed()) {
+          $setBlocksType(selection, () => $createCodeNode());
+        } else {
+          const textContent = selection.getTextContent();
+          const codeNode = $createCodeNode();
+          selection.insertNodes([codeNode]);
+          selection = $getSelection();
+          if ($isRangeSelection(selection)) {
+            selection.insertRawText(textContent);
+          }
+        }
+      }
+    });
   }
 
   return (
@@ -549,6 +594,9 @@ export default function ToolbarPlugin() {
           >
             <i className="bi bi-code"></i>
           </Button>
+          <Button active={isCodeBlock} onClick={formatCodeBlock} outline={isCodeBlock ? 'primary' : 'secondary'}>
+            <i className="bi bi-code-square"></i>
+          </Button>
           <Button
             active={isLink}
             onClick={() => {
@@ -556,14 +604,17 @@ export default function ToolbarPlugin() {
                 editor.dispatchCommand(TOGGLE_LINK_COMMAND, sanitizeUrl('https://'));
               }
 
-              toggleModal('link', true);
+              toggleModal('link');
             }}
             outline={isLink ? 'primary' : 'secondary'}
           >
             <i className="bi bi-link-45deg"></i>
           </Button>
-          <Button onClick={() => toggleModal('image', true)} outline="secondary">
+          <Button onClick={() => toggleModal('image')} outline="secondary">
             <i className="bi bi-image"></i>
+          </Button>
+          <Button onClick={() => toggleModal('table')} outline="secondary">
+            <i className="bi bi-table"></i>
           </Button>
         </ButtonGroup>
 
@@ -730,6 +781,46 @@ export default function ToolbarPlugin() {
             tabIndex={-1}
             title="PrepForge"
             visible={modals.image}
+          />
+
+          <Modal
+            body={
+              <div className="d-flex flex-column gap-2" key="table">
+                <Input
+                  maxLength={3}
+                  min={1}
+                  onChange={(e) => setRows(e.target.value)}
+                  placeholder="# of rows (1-500)"
+                  type="number"
+                  value={rows}
+                />
+
+                <Input
+                  maxLength={2}
+                  min={1}
+                  onChange={(e) => setColumns(e.target.value)}
+                  placeholder="# of columns (1-50)"
+                  type="number"
+                  value={columns}
+                />
+              </div>
+            }
+            centered
+            footer={
+              <>
+                <Button onClick={() => toggleModal('table', false)} type="button" variant="secondary">
+                  Cancel
+                </Button>
+                <Button disabled={isDisabled} onClick={confirmTable} type="button" variant="primary">
+                  Confirm
+                </Button>
+              </>
+            }
+            header={<CloseButton onClick={() => toggleModal('table', false)} type="button" />}
+            onVisibleChange={(value) => toggleModal('table', value)}
+            tabIndex={-1}
+            title="PrepForge"
+            visible={modals.table}
           />
         </>
       )}

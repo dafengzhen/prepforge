@@ -1,6 +1,11 @@
-@use 'bootstrap';
-@use 'bootstrap-icons';
-@use 'bootstrap-react-logic';
+@import 'bootstrap';
+@import 'bootstrap-icons';
+@import 'bootstrap-react-logic';
+@import 'github';
+
+@include color-mode(dark) {
+  @import 'github-dark';
+}
 
 .cursor-pointer {
   cursor: pointer;
@@ -83,4 +88,24 @@ input[type='search']::-webkit-search-cancel-button {
 
 .pointer-events-auto {
   pointer-events: auto;
+}
+
+.pre {
+  position: relative;
+  display: block;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  overflow: auto;
+  font-size: 0.875em;
+  color: inherit;
+  word-break: normal;
+}
+
+.table-row {
+  border-width: var(--bs-border-width) 0;
+}
+
+.table-cell {
+  padding: 0;
+  border-width: 0 var(--bs-border-width);
 }
