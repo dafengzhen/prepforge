@@ -77,6 +77,7 @@ export default function Home() {
   const [includeContent, setIncludeContent] = useState(false);
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [useEvery, setUseEvery] = useState(false);
 
   const toastRef = useToast();
   const { isDarkMode, toggleTheme } = useTheme();
@@ -96,15 +97,17 @@ export default function Home() {
       const searchValues = caseSensitive ? value.split(/\s+/) : value.toLowerCase().split(/\s+/);
 
       return questionList.filter((item) => {
+        const matchFunction = useEvery ? 'every' : 'some';
+
         const questionMatch = item.question
-          ? searchValues.every((keyword) =>
+          ? searchValues[matchFunction]((keyword) =>
               caseSensitive ? item.question!.includes(keyword) : item.question!.toLowerCase().includes(keyword),
             )
           : false;
 
         if (includeContent) {
           const descriptionMatch = item.answer
-            ? searchValues.every((keyword) =>
+            ? searchValues[matchFunction]((keyword) =>
                 caseSensitive ? item.answer!.includes(keyword) : item.answer!.toLowerCase().includes(keyword),
               )
             : false;
@@ -117,7 +120,7 @@ export default function Home() {
     } else {
       return questionList;
     }
-  }, [caseSensitive, deferredSearchValue, questionList, includeContent]);
+  }, [deferredSearchValue, caseSensitive, questionList, useEvery, includeContent]);
   const paginatedQuestionList = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -432,6 +435,19 @@ export default function Home() {
                           />
                           <Label className="text-secondary user-select-none" formCheckLabel htmlFor="caseSensitive">
                             Case Sensitive
+                          </Label>
+                        </div>
+
+                        <div className="d-flex gap-2">
+                          <Checkbox
+                            checked={useEvery}
+                            id="matchAllWords"
+                            name="matchAllWords"
+                            onChange={(e) => setUseEvery(e.target.checked)}
+                            value="matchAllWords"
+                          />
+                          <Label className="text-secondary user-select-none" formCheckLabel htmlFor="matchAllWords">
+                            Match All Words
                           </Label>
                         </div>
                       </div>
